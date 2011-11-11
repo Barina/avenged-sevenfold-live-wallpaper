@@ -52,7 +52,6 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 		{
 			isBlackCheckBox = new CheckBox(this);
 			isBlackCheckBox.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
-//			isBlackCheckBox.setBackgroundColor(Color.argb(180, 255, 255, 255));
 			isBlackCheckBox.setText("Use black skull.");
 			isBlackCheckBox.setTextColor(Color.BLACK);
 			isBlackCheckBox.setTypeface(Typeface.DEFAULT_BOLD);
