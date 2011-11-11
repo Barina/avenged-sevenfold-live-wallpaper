@@ -1,5 +1,6 @@
-package com.roy.barina.livewallpaper;
+package com.roy.barina.livewallpapernodonate;
 
+import com.roy.barina.livewallpapernodonate.R;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;

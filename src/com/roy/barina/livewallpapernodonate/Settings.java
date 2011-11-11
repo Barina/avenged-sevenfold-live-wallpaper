@@ -1,4 +1,4 @@
-package com.roy.barina.livewallpaper;
+package com.roy.barina.livewallpapernodonate;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;

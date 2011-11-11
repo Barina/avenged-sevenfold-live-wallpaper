@@ -1,4 +1,4 @@
-package com.roy.barina.livewallpaper;
+package com.roy.barina.livewallpapernodonate;
 
 import org.anddev.andengine.engine.camera.Camera;
 import org.anddev.andengine.engine.options.EngineOptions;
