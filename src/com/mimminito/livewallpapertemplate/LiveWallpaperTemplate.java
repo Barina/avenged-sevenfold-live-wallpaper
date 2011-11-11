@@ -16,6 +16,8 @@ import org.anddev.andengine.extension.ui.livewallpaper.BaseLiveWallpaperService;
 import org.anddev.andengine.opengl.texture.Texture;
 import org.anddev.andengine.opengl.texture.region.TextureRegion;
 import org.anddev.andengine.opengl.texture.region.TextureRegionFactory;
+import android.R.string;
+import android.content.Context;
 import android.content.SharedPreferences;
 
 public class LiveWallpaperTemplate extends BaseLiveWallpaperService implements SharedPreferences.OnSharedPreferenceChangeListener
@@ -24,34 +26,34 @@ public class LiveWallpaperTemplate extends BaseLiveWallpaperService implements S
 	// Constants
 	// ===========================================================
 	public static final String SHARED_PREFS_NAME = "livewallpapertemplatesettings";
-	
 	// Camera Constants
-	private static final int CAMERA_WIDTH = 480;
-	private static final int CAMERA_HEIGHT = 720;
-	
+	private static final int CAMERA_WIDTH = 540;
+	private static final int CAMERA_HEIGHT = 960;
 	// ===========================================================
 	// Fields
 	// ===========================================================
-	private Sprite skull, jaw, rightWing, leftWing;
-	private TextureRegion skullRegion,leftWingRegion,rightWingRegion,jawRegion;
-	
+	private static Texture texture;
+	private static Sprite skull, jaw, rightWing, leftWing;
+	private static TextureRegion skullRegion, leftWingRegion, rightWingRegion, jawRegion;
+	private static Context context;
+	private static Scene scene;
+	private static org.anddev.andengine.engine.Engine engine;
 	// Shared Preferences
 	private SharedPreferences mSharedPreferences;
 
 	// ===========================================================
 	// Constructors
 	// ===========================================================
-	
 	// ===========================================================
 	// Getter & Setter
 	// ===========================================================
-	
 	// ===========================================================
 	// Methods for/from SuperClass/Interfaces
-	// ===========================================================	
+	// ===========================================================
 	@Override
 	public org.anddev.andengine.engine.Engine onLoadEngine()
 	{
+		context = getBaseContext();
 		Camera mCamera = new Camera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
 		return new org.anddev.andengine.engine.Engine(new EngineOptions(true, ScreenOrientation.PORTRAIT, new FillResolutionPolicy(), mCamera));
 	}
@@ -59,30 +61,32 @@ public class LiveWallpaperTemplate extends BaseLiveWallpaperService implements S
 	@Override
 	public void onLoadResources()
 	{
+		engine = getEngine();
+		Settings.loadContext(getBaseContext());
 		// Set the Base Texture Path
 		TextureRegionFactory.setAssetBasePath("gfx/");
-		Texture texture = new Texture(256, 512);
-		skullRegion = TextureRegionFactory.createFromAsset(texture, getBaseContext(), "skull.png", 1, 1);
-		leftWingRegion = TextureRegionFactory.createFromAsset(texture, getBaseContext(), "left_wing.png", 1, 157);
-		rightWingRegion = TextureRegionFactory.createFromAsset(texture, getBaseContext(), "right_wing.png", 1, 260);
-		jawRegion = TextureRegionFactory.createFromAsset(texture, getBaseContext(), "jaw.png", 1, 361);
-		getEngine().getTextureManager().loadTexture(texture);
+		initTextureRegions(Settings.getIsBlackSetting());
 	}
 
-	@Override
-	public Scene onLoadScene()
+	private static void initTextureRegions(Boolean isBlack)
 	{
-		final Scene scene = new Scene(1);
-		scene.setBackground(new ColorBackground(0.0f, 0.0f, 0.0f));
+		if(texture != null)
+			engine.getTextureManager().unloadTexture(texture);
+		texture = new Texture(256, 512);
+		String color = isBlack ? "black_" : "white_";
+		skullRegion = TextureRegionFactory.createFromAsset(texture, context, color + "skull.png", 1, 1);
+		leftWingRegion = TextureRegionFactory.createFromAsset(texture, context, color + "left_wing.png", 1, 157);
+		rightWingRegion = TextureRegionFactory.createFromAsset(texture, context, color + "right_wing.png", 1, 260);
+		jawRegion = TextureRegionFactory.createFromAsset(texture, context, color + "jaw.png", 1, 361);
+		engine.getTextureManager().loadTexture(texture);
 		skull = new Sprite(CAMERA_WIDTH * 0.5f - skullRegion.getWidth() * 0.5f, CAMERA_HEIGHT * 0.5f - skullRegion.getHeight() * 0.5f, skullRegion);
 		rightWing = new Sprite((CAMERA_WIDTH * 0.5f - rightWingRegion.getWidth() * 0.5f) + rightWingRegion.getWidth() * 0.8f, skull.getBaseY() + 20, rightWingRegion);
 		rightWing.setRotationCenterX(0);
 		leftWing = new Sprite((CAMERA_WIDTH * 0.5f - leftWingRegion.getWidth() * 0.5f) - leftWingRegion.getWidth() * 0.8f, rightWing.getBaseY(), leftWingRegion);
 		leftWing.setRotationCenterX(leftWing.getWidth());
 		jaw = new Sprite(CAMERA_WIDTH * 0.5f - jawRegion.getWidth() * 0.5f, (CAMERA_HEIGHT * 0.5f - jawRegion.getHeight() * 0.5f) + 80, jawRegion);
-
-		final SequenceModifier skullSequenceModifier = new SequenceModifier(new MoveModifier(2, skull.getX(), skull.getX(), skull.getY(), skull.getY() + 50),
-				new MoveModifier(0.5f, skull.getX(), skull.getX(), skull.getY()+50, skull.getY()));
+		final SequenceModifier skullSequenceModifier = new SequenceModifier(new MoveModifier(2, skull.getX(), skull.getX(), skull.getY(), skull.getY() + 50), new MoveModifier(
+				0.5f, skull.getX(), skull.getX(), skull.getY() + 50, skull.getY()));
 		skullSequenceModifier.setShapeModifierListener(new IShapeModifier.IShapeModifierListener()
 		{
 			@Override
@@ -90,11 +94,10 @@ public class LiveWallpaperTemplate extends BaseLiveWallpaperService implements S
 			{
 				skullSequenceModifier.reset();
 			}
-		});		
+		});
 		skull.addShapeModifier(skullSequenceModifier);
-		
-		final SequenceModifier jawSequenceModifier = new SequenceModifier(new MoveModifier(2, jaw.getX(), jaw.getX(), jaw.getY(), jaw.getY()+70),
-				new MoveModifier(0.5f, jaw.getX(), jaw.getX(), jaw.getY()+70, jaw.getY())); 
+		final SequenceModifier jawSequenceModifier = new SequenceModifier(new MoveModifier(2, jaw.getX(), jaw.getX(), jaw.getY(), jaw.getY() + 70), new MoveModifier(0.5f,
+				jaw.getX(), jaw.getX(), jaw.getY() + 70, jaw.getY()));
 		jawSequenceModifier.setShapeModifierListener(new IShapeModifier.IShapeModifierListener()
 		{
 			@Override
@@ -104,8 +107,7 @@ public class LiveWallpaperTemplate extends BaseLiveWallpaperService implements S
 			}
 		});
 		jaw.addShapeModifier(jawSequenceModifier);
-		
-		final SequenceModifier rightWingSequenceModifier1 = new SequenceModifier(new RotationModifier(2, 80f, 0f),new RotationModifier(0.5f, 0f, 80f));
+		final SequenceModifier rightWingSequenceModifier1 = new SequenceModifier(new RotationModifier(2, 80f, 0f), new RotationModifier(0.5f, 0f, 80f));
 		rightWingSequenceModifier1.setShapeModifierListener(new IShapeModifier.IShapeModifierListener()
 		{
 			@Override
@@ -114,8 +116,8 @@ public class LiveWallpaperTemplate extends BaseLiveWallpaperService implements S
 				rightWingSequenceModifier1.reset();
 			}
 		});
-		final SequenceModifier rightWingSequenceModifier2 = new SequenceModifier(new MoveModifier(2, rightWing.getX(), rightWing.getX(), rightWing.getY(), rightWing.getY()+50),
-				new MoveModifier(0.5f, rightWing.getX(), rightWing.getX(), rightWing.getY()+50, rightWing.getY()));
+		final SequenceModifier rightWingSequenceModifier2 = new SequenceModifier(new MoveModifier(2, rightWing.getX(), rightWing.getX(), rightWing.getY(), rightWing.getY() + 50),
+				new MoveModifier(0.5f, rightWing.getX(), rightWing.getX(), rightWing.getY() + 50, rightWing.getY()));
 		rightWingSequenceModifier2.setShapeModifierListener(new IShapeModifier.IShapeModifierListener()
 		{
 			@Override
@@ -126,8 +128,7 @@ public class LiveWallpaperTemplate extends BaseLiveWallpaperService implements S
 		});
 		rightWing.addShapeModifier(rightWingSequenceModifier1);
 		rightWing.addShapeModifier(rightWingSequenceModifier2);
-		
-		final SequenceModifier leftWingSequenceModifier1 = new SequenceModifier(new RotationModifier(2, -80f, 0f),new RotationModifier(0.5f, 0f, -80f));
+		final SequenceModifier leftWingSequenceModifier1 = new SequenceModifier(new RotationModifier(2, -80f, 0f), new RotationModifier(0.5f, 0f, -80f));
 		leftWingSequenceModifier1.setShapeModifierListener(new IShapeModifier.IShapeModifierListener()
 		{
 			@Override
@@ -136,8 +137,8 @@ public class LiveWallpaperTemplate extends BaseLiveWallpaperService implements S
 				leftWingSequenceModifier1.reset();
 			}
 		});
-		final SequenceModifier leftWingSequenceModifier2 = new SequenceModifier(new MoveModifier(2, leftWing.getX(), leftWing.getX(), leftWing.getY(), leftWing.getY()+50),
-				new MoveModifier(0.5f, leftWing.getX(), leftWing.getX(), leftWing.getY()+50, leftWing.getY()));
+		final SequenceModifier leftWingSequenceModifier2 = new SequenceModifier(new MoveModifier(2, leftWing.getX(), leftWing.getX(), leftWing.getY(), leftWing.getY() + 50),
+				new MoveModifier(0.5f, leftWing.getX(), leftWing.getX(), leftWing.getY() + 50, leftWing.getY()));
 		leftWingSequenceModifier2.setShapeModifierListener(new IShapeModifier.IShapeModifierListener()
 		{
 			@Override
@@ -148,17 +149,48 @@ public class LiveWallpaperTemplate extends BaseLiveWallpaperService implements S
 		});
 		leftWing.addShapeModifier(leftWingSequenceModifier1);
 		leftWing.addShapeModifier(leftWingSequenceModifier2);
+	}
+
+	@Override
+	public Scene onLoadScene()
+	{
+		scene = new Scene(1);
+		setSceneBGColor(Settings.getIsBlackSetting());
+		addSpritesToScene();
 		return scene;
+	}
+
+	private static void addSpritesToScene()
+	{
+		scene.getTopLayer().addEntity(rightWing);
+		scene.getTopLayer().addEntity(leftWing);
+		scene.getTopLayer().addEntity(skull);
+		scene.getTopLayer().addEntity(jaw);
+	}
+
+	private static void setSceneBGColor(boolean isBlack)
+	{
+		if(isBlack)
+			scene.setBackground(new ColorBackground(1.0f, 1.0f, 1.0f));
+		else
+			scene.setBackground(new ColorBackground(0.0f, 0.0f, 0.0f));
+	}
+
+	public static void changeColor(boolean toBlack)
+	{
+		scene.getTopLayer().removeEntity(rightWing);
+		scene.getTopLayer().removeEntity(leftWing);
+		scene.getTopLayer().removeEntity(skull);
+		scene.getTopLayer().removeEntity(jaw);
+		initTextureRegions(toBlack);
+		setSceneBGColor(toBlack);
+		addSpritesToScene();
+		Settings.setSetting(toBlack);
 	}
 
 	@Override
 	public void onLoadComplete()
-	{
-		getEngine().getScene().getTopLayer().addEntity(rightWing);
-		getEngine().getScene().getTopLayer().addEntity(leftWing);
-		getEngine().getScene().getTopLayer().addEntity(skull);
-		getEngine().getScene().getTopLayer().addEntity(jaw);
-	}
+	{}
 
 	@Override
 	protected void onTap(final int pX, final int pY)
@@ -167,11 +199,9 @@ public class LiveWallpaperTemplate extends BaseLiveWallpaperService implements S
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences pSharedPrefs, String pKey)
 	{}
-	
 	// ===========================================================
 	// Methods
 	// ===========================================================
-	
 	// ===========================================================
 	// Inner and Anonymous Classes
 	// ===========================================================
