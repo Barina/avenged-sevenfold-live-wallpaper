@@ -8,7 +8,7 @@
     <application android:icon="@drawable/icon" android:label="@string/app_name">    	
     	<!-- Live Wallpaper Service -->
     	<service
-            android:name="com.roy.barina.livewallpapernodonate.LiveWallpaperTemplate"
+            android:name=".LiveWallpaper"
 			android:enabled="true"
 			android:icon="@drawable/icon"
 			android:label="@string/app_name"
@@ -23,7 +23,7 @@
         <!-- Live Wallpaper Settings Activity -->
         <activity
         	android:label="@string/wallpaper_settings"
-        	android:name="com.roy.barina.livewallpapernodonate.LiveWallpaperTemplateSettings"
+        	android:name=".Settings"
         	android:theme="@android:style/Theme.Light.WallpaperSettings"
         	android:exported="true">
         </activity>        

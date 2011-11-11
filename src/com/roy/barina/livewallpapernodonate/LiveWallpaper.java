@@ -16,11 +16,10 @@ import org.anddev.andengine.extension.ui.livewallpaper.BaseLiveWallpaperService;
 import org.anddev.andengine.opengl.texture.Texture;
 import org.anddev.andengine.opengl.texture.region.TextureRegion;
 import org.anddev.andengine.opengl.texture.region.TextureRegionFactory;
-import android.R.string;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-public class LiveWallpaperTemplate extends BaseLiveWallpaperService implements SharedPreferences.OnSharedPreferenceChangeListener
+public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPreferences.OnSharedPreferenceChangeListener
 {
 	// ===========================================================
 	// Constants
@@ -38,9 +37,10 @@ public class LiveWallpaperTemplate extends BaseLiveWallpaperService implements S
 	private static Context context;
 	private static Scene scene;
 	private static org.anddev.andengine.engine.Engine engine;
-	// Shared Preferences
-	private SharedPreferences mSharedPreferences;
 
+	// Shared Preferences
+	// private SharedPreferences mSharedPreferences;
+	
 	// ===========================================================
 	// Constructors
 	// ===========================================================
