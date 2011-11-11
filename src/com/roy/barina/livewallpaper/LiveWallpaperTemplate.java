@@ -1,4 +1,4 @@
-package com.mimminito.livewallpapertemplate;
+package com.roy.barina.livewallpaper;
 
 import org.anddev.andengine.engine.camera.Camera;
 import org.anddev.andengine.engine.options.EngineOptions;

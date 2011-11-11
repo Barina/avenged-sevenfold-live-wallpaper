@@ -1,4 +1,4 @@
-package com.mimminito.livewallpapertemplate;
+package com.roy.barina.livewallpaper;
 
 import android.content.SharedPreferences;
 import android.graphics.Color;

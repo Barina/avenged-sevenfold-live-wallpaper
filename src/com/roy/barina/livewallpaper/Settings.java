@@ -1,4 +1,4 @@
-package com.mimminito.livewallpapertemplate;
+package com.roy.barina.livewallpaper;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
