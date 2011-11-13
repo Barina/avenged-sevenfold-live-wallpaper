@@ -26,8 +26,8 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 	// ===========================================================
 	public static final String SHARED_PREFS_NAME = "livewallpapertemplatesettings";
 	// Camera Constants
-	private static final int CAMERA_WIDTH = 540;
-	private static final int CAMERA_HEIGHT = 960;
+	protected static final int CAMERA_WIDTH = 540;
+	protected static final int CAMERA_HEIGHT = 960;
 	// ===========================================================
 	// Fields
 	// ===========================================================
@@ -40,7 +40,6 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 
 	// Shared Preferences
 	// private SharedPreferences mSharedPreferences;
-	
 	// ===========================================================
 	// Constructors
 	// ===========================================================
@@ -59,16 +58,16 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 	}
 
 	@Override
-	public void onLoadResources()
+	public synchronized void onLoadResources()
 	{
 		engine = getEngine();
 		Settings.loadContext(getBaseContext());
 		// Set the Base Texture Path
 		TextureRegionFactory.setAssetBasePath("gfx/");
-		initTextureRegions(Settings.getIsBlackSetting());
+		initTextureRegions(Settings.getBooleanSetting(Settings.IS_BLACK_SETTING));
 	}
 
-	private static void initTextureRegions(Boolean isBlack)
+	private synchronized static void initTextureRegions(Boolean isBlack)
 	{
 		if(texture != null)
 			engine.getTextureManager().unloadTexture(texture);
@@ -152,15 +151,20 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 	}
 
 	@Override
-	public Scene onLoadScene()
+	public synchronized Scene onLoadScene()
 	{
 		scene = new Scene(1);
-		setSceneBGColor(Settings.getIsBlackSetting());
+		setSceneBGColor(Settings.getBooleanSetting(Settings.IS_BLACK_SETTING));
 		addSpritesToScene();
 		return scene;
 	}
 
-	private static void addSpritesToScene()
+	public synchronized static void pauseScene(boolean pause)
+	{
+		scene.setIgnoreUpdate(pause);
+	}
+
+	private synchronized static void addSpritesToScene()
 	{
 		scene.getTopLayer().addEntity(rightWing);
 		scene.getTopLayer().addEntity(leftWing);
@@ -168,7 +172,7 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 		scene.getTopLayer().addEntity(jaw);
 	}
 
-	private static void setSceneBGColor(boolean isBlack)
+	private synchronized static void setSceneBGColor(boolean isBlack)
 	{
 		if(isBlack)
 			scene.setBackground(new ColorBackground(1.0f, 1.0f, 1.0f));
@@ -176,7 +180,7 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 			scene.setBackground(new ColorBackground(0.0f, 0.0f, 0.0f));
 	}
 
-	public static void changeColor(boolean toBlack)
+	public synchronized static void changeColor(boolean toBlack)
 	{
 		scene.getTopLayer().removeEntity(rightWing);
 		scene.getTopLayer().removeEntity(leftWing);
@@ -185,12 +189,14 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 		initTextureRegions(toBlack);
 		setSceneBGColor(toBlack);
 		addSpritesToScene();
-		Settings.setSetting(toBlack);
+		Settings.setSetting(Settings.IS_BLACK_SETTING, toBlack);
 	}
 
 	@Override
 	public void onLoadComplete()
-	{}
+	{
+		pauseScene(Settings.getBooleanSetting(Settings.IS_PAUSED_SETTING));
+	}
 
 	@Override
 	protected void onTap(final int pX, final int pY)
