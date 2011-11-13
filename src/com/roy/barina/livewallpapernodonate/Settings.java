@@ -14,12 +14,14 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.FrameLayout.LayoutParams;
 import android.widget.LinearLayout;
+import com.google.ads.*;
 
 public class Settings extends PreferenceActivity implements SharedPreferences.OnSharedPreferenceChangeListener
 {
 	public static final String IS_BLACK_SETTING = "isBlack", IS_PAUSED_SETTING = "isPaused";
 	private LinearLayout linearLayout;
 	private CheckBox isBlackCheckBox, pausedCheckBox;
+	private AdView adView;
 
 	@Override
 	protected void onCreate(Bundle icicle)
@@ -41,6 +43,7 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 	protected void onDestroy()
 	{
 		getPreferenceManager().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
+		getAdView().destroy();
 		super.onDestroy();
 	}
 
@@ -56,6 +59,8 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 			linearLayout.setOrientation(LinearLayout.VERTICAL);
 			linearLayout.addView(getIsBlackCheckBox());
 			linearLayout.addView(getPausedCheckBox());
+			linearLayout.addView(getAdView());
+			getAdView().loadAd(new AdRequest());
 		}
 		return linearLayout;
 	}
@@ -105,6 +110,13 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 		return pausedCheckBox;
 	}
 
+	public AdView getAdView()
+	{
+		if(adView==null)
+			adView=new AdView(this, AdSize.BANNER, "a14ebf22b8e1ba6");
+		return adView;
+	}
+	
 	private static Context activityContext;
 
 	public static void loadContext(Context context)
