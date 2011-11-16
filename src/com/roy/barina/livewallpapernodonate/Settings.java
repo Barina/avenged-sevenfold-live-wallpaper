@@ -14,13 +14,15 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.FrameLayout.LayoutParams;
 import android.widget.LinearLayout;
-import com.google.ads.*;
+import com.google.ads.AdRequest;
+import com.google.ads.AdSize;
+import com.google.ads.AdView;
 
 public class Settings extends PreferenceActivity implements SharedPreferences.OnSharedPreferenceChangeListener
 {
-	public static final String IS_BLACK_SETTING = "isBlack", IS_PAUSED_SETTING = "isPaused";
+	public static final String IS_BLACK_SETTING = "isBlack", IS_PAUSED_SETTING = "isPaused", DRAW_TITLE_SETTING = "drawTitle";
 	private LinearLayout linearLayout;
-	private CheckBox isBlackCheckBox, pausedCheckBox;
+	private CheckBox isBlackCheckBox, pausedCheckBox, drawTitleCheckBox;
 	private AdView adView;
 
 	@Override
@@ -59,6 +61,7 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 			linearLayout.setOrientation(LinearLayout.VERTICAL);
 			linearLayout.addView(getIsBlackCheckBox());
 			linearLayout.addView(getPausedCheckBox());
+			linearLayout.addView(getDrawTitleCheckBox());
 			linearLayout.addView(getAdView());
 			getAdView().loadAd(new AdRequest());
 		}
@@ -71,7 +74,7 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 		{
 			isBlackCheckBox = new CheckBox(this);
 			isBlackCheckBox.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
-			isBlackCheckBox.setText("Use black skull.");
+			isBlackCheckBox.setText("Invert colors.");
 			isBlackCheckBox.setTextColor(Color.BLACK);
 			isBlackCheckBox.setTypeface(Typeface.DEFAULT_BOLD);
 			isBlackCheckBox.setChecked(getBooleanSetting(IS_BLACK_SETTING));
@@ -110,13 +113,36 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 		return pausedCheckBox;
 	}
 
+	public CheckBox getDrawTitleCheckBox()
+	{
+		if(drawTitleCheckBox == null)
+		{
+			drawTitleCheckBox = new CheckBox(this);
+			drawTitleCheckBox.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+			drawTitleCheckBox.setText("Draw title.");
+			drawTitleCheckBox.setTextColor(Color.BLACK);
+			drawTitleCheckBox.setTypeface(Typeface.DEFAULT_BOLD);
+			drawTitleCheckBox.setChecked(getBooleanSetting(DRAW_TITLE_SETTING));
+			drawTitleCheckBox.setOnCheckedChangeListener(new CheckBox.OnCheckedChangeListener()
+			{
+				@Override
+				public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
+				{
+					LiveWallpaper.drawTitle(isChecked);
+					setSetting(DRAW_TITLE_SETTING, isChecked);
+				}
+			});
+		}
+		return drawTitleCheckBox;
+	}
+
 	public AdView getAdView()
 	{
-		if(adView==null)
-			adView=new AdView(this, AdSize.BANNER, "a14ebf22b8e1ba6");
+		if(adView == null)
+			adView = new AdView(this, AdSize.BANNER, "a14ebf22b8e1ba6");
 		return adView;
 	}
-	
+
 	private static Context activityContext;
 
 	public static void loadContext(Context context)
