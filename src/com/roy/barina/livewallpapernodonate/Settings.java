@@ -5,12 +5,17 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.security.InvalidParameterException;
 import org.anddev.andengine.util.Debug;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.FrameLayout.LayoutParams;
@@ -54,6 +59,7 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 	private CheckBox isBlackCheckBox, pausedCheckBox, drawTitleCheckBox;
 	private SeekBar titleSeekBar, logoSeekBar;
 	private TextView titleDistanceTextView, logoDistanceTextView;
+	private Button resetButton;
 	private AdView adView;
 
 	@Override
@@ -98,6 +104,13 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 			linearLayout.addView(getTitleSeekBar());
 			linearLayout.addView(getLogoDistanceTextView());
 			linearLayout.addView(getLogoSeekBar());
+			linearLayout.addView(getResetButton());
+			final TextView textView = new TextView(this);
+			textView.setText("Please donate.. :)");
+			textView.setTextColor(Color.RED);
+			textView.setTextSize(20);
+			textView.setBackgroundColor(Color.argb(190, 0, 0, 0));
+			linearLayout.addView(textView);
 			linearLayout.addView(getAdView());
 			getAdView().loadAd(new AdRequest());
 		}
@@ -270,6 +283,39 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 		return logoSeekBar;
 	}
 
+	public Button getResetButton()
+	{
+		if(resetButton == null)
+		{
+			resetButton = new Button(this);
+			resetButton.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+			resetButton.setText("Reset to defaults");
+			resetButton.setOnClickListener(new OnClickListener()
+			{
+				@Override
+				public void onClick(View v)
+				{
+					AlertDialog.Builder builder = new AlertDialog.Builder(Settings.this);
+					builder.setMessage("Are you sure you want to reset all your settings?").setCancelable(false).setPositiveButton("Yes", new DialogInterface.OnClickListener()
+					{
+						public void onClick(DialogInterface dialog, int id)
+						{
+							resetSettings();
+						}
+					}).setNegativeButton("No", new DialogInterface.OnClickListener()
+					{
+						public void onClick(DialogInterface dialog, int id)
+						{
+							dialog.cancel();
+						}
+					});
+					builder.create().show();
+				}
+			});
+		}
+		return resetButton;
+	}
+
 	private static Context activityContext;
 
 	public static void loadContext(Context context)
@@ -298,6 +344,17 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 		setSetting(TITLE_DISTANCE_SETTING, titleDistance);
 	}
 
+	private void resetSettings()
+	{
+		setSetting(IS_BLACK_SETTING, isBlack = false);
+		setSetting(IS_PAUSED_SETTING, paused = false);
+		setSetting(DRAW_TITLE_SETTING, drawTitle = true);
+		setSetting(LOGO_DISTANCE_SETTING, logoDistance = 400);
+		setSetting(TITLE_DISTANCE_SETTING, titleDistance = 100);
+		finish();
+		LiveWallpaper.changeColor(isBlack);
+	}
+	
 	private static boolean getBooleanSetting(String settingName)
 	{
 		Boolean result = (Boolean)getSetting(settingName);
