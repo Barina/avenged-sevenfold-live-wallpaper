@@ -65,7 +65,7 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 		Settings.loadContext(getBaseContext());
 		// Set the Base Texture Path
 		TextureRegionFactory.setAssetBasePath("gfx/");
-		initTextureRegions(Settings.getBooleanSetting(Settings.IS_BLACK_SETTING));
+		initTextureRegions(Settings.getSettingAsBoolean(Settings.IS_BLACK_SETTING));
 	}
 
 	private synchronized static void initTextureRegions(Boolean isBlack)
@@ -81,13 +81,14 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 		jawRegion = TextureRegionFactory.createFromAsset(texture, context, color + "jaw.png", 1, 361);
 		titleRegion = TextureRegionFactory.createFromAsset(titleTexture, context, color + "title.png", 0, 0);
 		engine.getTextureManager().loadTextures(texture, titleTexture);
-		skull = new Sprite(CAMERA_WIDTH * 0.5f - skullRegion.getWidth() * 0.5f, CAMERA_HEIGHT * 0.5f - skullRegion.getHeight() * 0.5f, skullRegion);
-		rightWing = new Sprite((CAMERA_WIDTH * 0.5f - rightWingRegion.getWidth() * 0.5f) + rightWingRegion.getWidth() * 0.8f, skull.getBaseY() + 20, rightWingRegion);
+		final int logoDistance = Settings.getSettingAsInt(Settings.LOGO_DISTANCE_SETTING),titleDistance = Settings.getSettingAsInt(Settings.TITLE_DISTANCE_SETTING);
+		skull = new Sprite(CAMERA_WIDTH * 0.5f - skullRegion.getWidth() * 0.5f, logoDistance, skullRegion);
+		rightWing = new Sprite((CAMERA_WIDTH * 0.5f - rightWingRegion.getWidth() * 0.5f) + rightWingRegion.getWidth() * 0.8f, logoDistance + 20, rightWingRegion);
 		rightWing.setRotationCenterX(0);
 		leftWing = new Sprite((CAMERA_WIDTH * 0.5f - leftWingRegion.getWidth() * 0.5f) - leftWingRegion.getWidth() * 0.8f, rightWing.getBaseY(), leftWingRegion);
 		leftWing.setRotationCenterX(leftWing.getWidth());
-		jaw = new Sprite(CAMERA_WIDTH * 0.5f - jawRegion.getWidth() * 0.5f, (CAMERA_HEIGHT * 0.5f - jawRegion.getHeight() * 0.5f) + 80, jawRegion);
-		titleSprite = new Sprite(CAMERA_WIDTH * 0.5f - titleRegion.getWidth() * 0.5f, 100, titleRegion);
+		jaw = new Sprite(CAMERA_WIDTH * 0.5f - jawRegion.getWidth() * 0.5f, logoDistance + 120, jawRegion);
+		titleSprite = new Sprite(CAMERA_WIDTH * 0.5f - titleRegion.getWidth() * 0.5f, titleDistance, titleRegion);
 		titleSprite.addShapeModifier(new SequenceModifier(new IShapeModifier.IShapeModifierListener()
 		{
 			@Override
@@ -105,7 +106,7 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 			}
 		}, new MoveModifier(2, titleSprite.getX(), titleSprite.getX(), titleSprite.getY(), titleSprite.getY() + 20), new MoveModifier(2, titleSprite.getX(), titleSprite.getX(),
 				titleSprite.getY() + 20, titleSprite.getY())));
-		titleSprite.setVisible(Settings.getBooleanSetting(Settings.DRAW_TITLE_SETTING));
+		titleSprite.setVisible(Settings.getSettingAsBoolean(Settings.DRAW_TITLE_SETTING));
 		final SequenceModifier skullSequenceModifier = new SequenceModifier(new MoveModifier(2, skull.getX(), skull.getX(), skull.getY(), skull.getY() + 50), new MoveModifier(
 				0.5f, skull.getX(), skull.getX(), skull.getY() + 50, skull.getY()));
 		skullSequenceModifier.setShapeModifierListener(new IShapeModifier.IShapeModifierListener()
@@ -170,13 +171,24 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 		});
 		leftWing.addShapeModifier(leftWingSequenceModifier1);
 		leftWing.addShapeModifier(leftWingSequenceModifier2);
+		updateDistances();
+	}
+
+	private synchronized static void updateDistances()
+	{
+		final int logoDistance = Settings.getSettingAsInt(Settings.LOGO_DISTANCE_SETTING), titleDistance = Settings.getSettingAsInt(Settings.TITLE_DISTANCE_SETTING);
+		skull.setPosition(skull.getX(), logoDistance);
+		rightWing.setPosition(rightWing.getX(), logoDistance + 20);
+		leftWing.setPosition(leftWing.getX(), logoDistance + 20);
+		jaw.setPosition(jaw.getX(), logoDistance + 120);
+		titleSprite.setPosition(titleSprite.getX(), titleDistance);
 	}
 
 	@Override
 	public synchronized Scene onLoadScene()
 	{
 		scene = new Scene(1);
-		setSceneBGColor(Settings.getBooleanSetting(Settings.IS_BLACK_SETTING));
+		setSceneBGColor(Settings.getSettingAsBoolean(Settings.IS_BLACK_SETTING));
 		addSpritesToScene();
 		return scene;
 	}
@@ -211,15 +223,15 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 		scene.getTopLayer().removeEntity(skull);
 		scene.getTopLayer().removeEntity(titleSprite);
 		initTextureRegions(toBlack);
+		updateDistances();
 		setSceneBGColor(toBlack);
 		addSpritesToScene();
-		Settings.setSetting(Settings.IS_BLACK_SETTING, toBlack);
 	}
 
 	@Override
 	public void onLoadComplete()
 	{
-		pauseScene(Settings.getBooleanSetting(Settings.IS_PAUSED_SETTING));
+		pauseScene(Settings.getSettingAsBoolean(Settings.IS_PAUSED_SETTING));
 	}
 
 	@Override

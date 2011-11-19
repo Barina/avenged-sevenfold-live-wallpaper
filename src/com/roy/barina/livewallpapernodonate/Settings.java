@@ -3,6 +3,7 @@ package com.roy.barina.livewallpapernodonate;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.security.InvalidParameterException;
 import org.anddev.andengine.util.Debug;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -14,15 +15,45 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.FrameLayout.LayoutParams;
 import android.widget.LinearLayout;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
+import android.widget.TextView;
 import com.google.ads.AdRequest;
 import com.google.ads.AdSize;
 import com.google.ads.AdView;
 
 public class Settings extends PreferenceActivity implements SharedPreferences.OnSharedPreferenceChangeListener
 {
-	public static final String IS_BLACK_SETTING = "isBlack", IS_PAUSED_SETTING = "isPaused", DRAW_TITLE_SETTING = "drawTitle";
+	public static final String IS_BLACK_SETTING = "isBlack", IS_PAUSED_SETTING = "isPaused", 
+	DRAW_TITLE_SETTING = "drawTitle", LOGO_DISTANCE_SETTING = "logoDistance", TITLE_DISTANCE_SETTING = "titleDistance";
+	
+	private static boolean isBlack, paused, drawTitle;
+	private static int logoDistance, titleDistance;
+
+	public static boolean getSettingAsBoolean(String settingName)
+	{
+		if(settingName.equals(IS_BLACK_SETTING))
+			return isBlack;
+		if(settingName.equals(IS_PAUSED_SETTING))
+			return paused;
+		if(settingName.equals(DRAW_TITLE_SETTING))
+			return drawTitle;
+		throw new InvalidParameterException("Bad request.");
+	}
+
+	public static int getSettingAsInt(String settingName)
+	{
+		if(settingName.equals(TITLE_DISTANCE_SETTING))
+			return titleDistance;
+		if(settingName.equals(LOGO_DISTANCE_SETTING))
+			return logoDistance;
+		return -1;
+	}
+	
 	private LinearLayout linearLayout;
 	private CheckBox isBlackCheckBox, pausedCheckBox, drawTitleCheckBox;
+	private SeekBar titleSeekBar, logoSeekBar;
+	private TextView titleDistanceTextView, logoDistanceTextView;
 	private AdView adView;
 
 	@Override
@@ -32,7 +63,7 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 		getPreferenceManager().setSharedPreferencesName(LiveWallpaper.SHARED_PREFS_NAME);
 		addPreferencesFromResource(R.xml.wallpaper_settings);
 		getPreferenceManager().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
-		addContentView(getLinearLayout(), new android.widget.LinearLayout.LayoutParams(LiveWallpaper.CAMERA_WIDTH, LiveWallpaper.CAMERA_HEIGHT));
+		addContentView(getLinearLayout(), new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
 	}
 
 	@Override
@@ -44,6 +75,7 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 	@Override
 	protected void onDestroy()
 	{
+		saveSettings();
 		getPreferenceManager().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
 		getAdView().destroy();
 		super.onDestroy();
@@ -62,6 +94,10 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 			linearLayout.addView(getIsBlackCheckBox());
 			linearLayout.addView(getPausedCheckBox());
 			linearLayout.addView(getDrawTitleCheckBox());
+			linearLayout.addView(getTitleDistanceTextView());
+			linearLayout.addView(getTitleSeekBar());
+			linearLayout.addView(getLogoDistanceTextView());
+			linearLayout.addView(getLogoSeekBar());
 			linearLayout.addView(getAdView());
 			getAdView().loadAd(new AdRequest());
 		}
@@ -84,6 +120,7 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 				public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
 				{
 					LiveWallpaper.changeColor(isChecked);
+					isBlack = isChecked;
 				}
 			});
 		}
@@ -106,7 +143,7 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 				public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
 				{
 					LiveWallpaper.pauseScene(isChecked);
-					setSetting(IS_PAUSED_SETTING, isChecked);
+					paused = isChecked;
 				}
 			});
 		}
@@ -129,7 +166,7 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 				public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
 				{
 					LiveWallpaper.drawTitle(isChecked);
-					setSetting(DRAW_TITLE_SETTING, isChecked);
+					drawTitle = isChecked;
 				}
 			});
 		}
@@ -143,52 +180,152 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 		return adView;
 	}
 
+	public TextView getTitleDistanceTextView()
+	{
+		if(titleDistanceTextView == null)
+		{
+			titleDistanceTextView = new TextView(this);
+			titleDistanceTextView.setText("Title distance from ceiling: " + getTitleSeekBar().getProgress());
+			titleDistanceTextView.setTextColor(Color.WHITE);
+			titleDistanceTextView.setBackgroundColor(Color.argb(190, 0, 0, 0));
+		}
+		return titleDistanceTextView;
+	}
+
+	public TextView getLogoDistanceTextView()
+	{
+		if(logoDistanceTextView == null)
+		{
+			logoDistanceTextView = new TextView(this);
+			logoDistanceTextView.setText("Logo distance from ceiling: " + getLogoSeekBar().getProgress());
+			logoDistanceTextView.setTextColor(Color.WHITE);
+			logoDistanceTextView.setBackgroundColor(Color.argb(190, 0, 0, 0));
+		}
+		return logoDistanceTextView;
+	}
+
+	public SeekBar getTitleSeekBar()
+	{
+		if(titleSeekBar == null)
+		{
+			titleSeekBar = new SeekBar(this);
+			titleSeekBar.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+			titleSeekBar.setMax(LiveWallpaper.CAMERA_HEIGHT);
+			int distance = getSettingAsInt(TITLE_DISTANCE_SETTING);
+			titleSeekBar.setProgress(distance <= -1 ? 100 : distance);
+			titleSeekBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener()
+			{
+				@Override
+				public void onStopTrackingTouch(SeekBar seekBar)
+				{
+					LiveWallpaper.changeColor(isBlack);
+				}
+
+				@Override
+				public void onStartTrackingTouch(SeekBar seekBar)
+				{}
+
+				@Override
+				public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
+				{
+					if(fromUser)
+						titleDistance = progress;
+					getTitleDistanceTextView().setText("Title distance from ceiling: " + progress);
+				}
+			});
+		}
+		return titleSeekBar;
+	}
+
+	public SeekBar getLogoSeekBar()
+	{
+		if(logoSeekBar == null)
+		{
+			logoSeekBar = new SeekBar(this);
+			logoSeekBar.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+			logoSeekBar.setMax(LiveWallpaper.CAMERA_HEIGHT);
+			int distance = getSettingAsInt(LOGO_DISTANCE_SETTING);
+			logoSeekBar.setProgress(distance <= -1 ? 400 : distance);
+			logoSeekBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener()
+			{
+				@Override
+				public void onStopTrackingTouch(SeekBar seekBar)
+				{
+					LiveWallpaper.changeColor(isBlack);
+				}
+
+				@Override
+				public void onStartTrackingTouch(SeekBar seekBar)
+				{}
+
+				@Override
+				public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
+				{
+					if(fromUser)
+						logoDistance = progress;
+					getLogoDistanceTextView().setText("Logo distance from ceiling: " + progress);
+				}
+			});
+		}
+		return logoSeekBar;
+	}
+
 	private static Context activityContext;
 
 	public static void loadContext(Context context)
 	{
 		activityContext = context;
+		loadSettings();
 	}
 
-	@Deprecated
-	public static boolean getIsBlackSetting()
+	private static void loadSettings()
 	{
-		ObjectInputStream inputStream = null;
-		try
-		{
-			inputStream = new ObjectInputStream(activityContext.openFileInput("isBlack"));
-			return inputStream.readBoolean();
-		}
-		catch(Exception e)
-		{
-			Debug.w("Faild to load setting." + e.getMessage(), e);
-		}
-		finally
-		{
-			if(inputStream != null)
-				try
-				{
-					inputStream.close();
-				}
-				catch(IOException e)
-				{
-					Debug.w(e.getMessage(), e);
-				}
-		}
-		return false;
+		isBlack = getBooleanSetting(IS_BLACK_SETTING);
+		paused = getBooleanSetting(IS_PAUSED_SETTING);
+		drawTitle = getBooleanSetting(DRAW_TITLE_SETTING);
+		if((logoDistance = getIntSetting(LOGO_DISTANCE_SETTING)) <= -1)
+			logoDistance = 400;
+		if((titleDistance = getIntSetting(TITLE_DISTANCE_SETTING)) <= -1)
+			titleDistance = 100;
 	}
 
-	public static boolean getBooleanSetting(String settingName)
+	private static void saveSettings()
+	{
+		setSetting(IS_BLACK_SETTING, isBlack);
+		setSetting(IS_PAUSED_SETTING, paused);
+		setSetting(DRAW_TITLE_SETTING, drawTitle);
+		setSetting(LOGO_DISTANCE_SETTING, logoDistance);
+		setSetting(TITLE_DISTANCE_SETTING, titleDistance);
+	}
+
+	private static boolean getBooleanSetting(String settingName)
+	{
+		Boolean result = (Boolean)getSetting(settingName);
+		if(result == null)
+			result = false;
+		return result;
+	}
+	
+	private static int getIntSetting(String settingName)
+	{
+		Debug.v("Trying to pull "+settingName);
+		Integer result = (Integer)getSetting(settingName);
+		if(result == null)
+			result = -1;
+		return result;
+	}
+	
+	private static Object getSetting(String settingName)
 	{
 		ObjectInputStream inputStream = null;
 		try
 		{
 			inputStream = new ObjectInputStream(activityContext.openFileInput(settingName));
-			return inputStream.readBoolean();
+			return inputStream.readObject();
 		}
 		catch(Exception e)
 		{
-			Debug.w("Faild to load setting." + e.getMessage(), e);
+			Debug.w("Faild to load setting. " + e.getMessage(), e);
 		}
 		finally
 		{
@@ -205,13 +342,13 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 		return false;
 	}
 
-	public static void setSetting(String settingName, boolean isBlack)
+	private static void setSetting(String settingName, Object value)
 	{
 		ObjectOutputStream outputStream = null;
 		try
 		{
-			outputStream = new ObjectOutputStream(activityContext.openFileOutput(settingName/* "isBlack" */, 0));
-			outputStream.writeBoolean(isBlack);
+			outputStream = new ObjectOutputStream(activityContext.openFileOutput(settingName, 0));
+			outputStream.writeObject(value);
 			outputStream.flush();
 			outputStream.close();
 		}
