@@ -29,9 +29,8 @@ import com.google.ads.AdView;
 
 public class Settings extends PreferenceActivity implements SharedPreferences.OnSharedPreferenceChangeListener
 {
-	public static final String IS_BLACK_SETTING = "isBlack", IS_PAUSED_SETTING = "isPaused", 
-	DRAW_TITLE_SETTING = "drawTitle", LOGO_DISTANCE_SETTING = "logoDistance", TITLE_DISTANCE_SETTING = "titleDistance";
-	
+	public static final String IS_BLACK_SETTING = "isBlack", IS_PAUSED_SETTING = "isPaused", DRAW_TITLE_SETTING = "drawTitle", LOGO_DISTANCE_SETTING = "logoDistance",
+			TITLE_DISTANCE_SETTING = "titleDistance";
 	private static boolean isBlack, paused, drawTitle;
 	private static int logoDistance, titleDistance;
 
@@ -54,7 +53,7 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 			return logoDistance;
 		return -1;
 	}
-	
+
 	private LinearLayout linearLayout;
 	private CheckBox isBlackCheckBox, pausedCheckBox, drawTitleCheckBox;
 	private SeekBar titleSeekBar, logoSeekBar;
@@ -354,24 +353,39 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 		finish();
 		LiveWallpaper.changeColor(isBlack);
 	}
-	
+
 	private static boolean getBooleanSetting(String settingName)
 	{
-		Boolean result = (Boolean)getSetting(settingName);
+		Boolean result;
+		try
+		{
+			result = (Boolean)getSetting(settingName);
+		}
+		catch(ClassCastException e)
+		{
+			result = false;
+		}
 		if(result == null)
 			result = false;
 		return result;
 	}
-	
+
 	private static int getIntSetting(String settingName)
 	{
-		Debug.v("Trying to pull "+settingName);
-		Integer result = (Integer)getSetting(settingName);
+		Integer result = -1;
+		try
+		{
+			result = (Integer)getSetting(settingName);
+		}
+		catch(ClassCastException e)
+		{
+			// no need to handle..
+		}
 		if(result == null)
 			result = -1;
 		return result;
 	}
-	
+
 	private static Object getSetting(String settingName)
 	{
 		ObjectInputStream inputStream = null;
