@@ -17,21 +17,22 @@ import org.anddev.andengine.opengl.texture.Texture;
 import org.anddev.andengine.opengl.texture.TextureOptions;
 import org.anddev.andengine.opengl.texture.region.TextureRegion;
 import org.anddev.andengine.opengl.texture.region.TextureRegionFactory;
+import org.anddev.andengine.opengl.view.RenderSurfaceView;
+import org.anddev.andengine.opengl.view.RenderSurfaceView.Renderer;
+import android.app.LauncherActivity;
+import android.app.WallpaperManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Bundle;
 
-public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPreferences.OnSharedPreferenceChangeListener
+public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPreferences.OnSharedPreferenceChangeListener, IOffsetsChanged
 {
-	// ===========================================================
-	// Constants
-	// ===========================================================
 	public static final String SHARED_PREFS_NAME = "livewallpapertemplatesettings";
-	// Camera Constants
+	
 	protected static final int CAMERA_WIDTH = 540;
 	protected static final int CAMERA_HEIGHT = 960;
-	// ===========================================================
-	// Fields
-	// ===========================================================
+	private static Camera mCamera = null;
 	private static Texture texture, titleTexture;
 	private static Sprite skull, jaw, rightWing, leftWing, titleSprite;
 	private static TextureRegion skullRegion, leftWingRegion, rightWingRegion, jawRegion, titleRegion;
@@ -39,22 +40,17 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 	private static Scene scene;
 	private static org.anddev.andengine.engine.Engine engine;
 
-	// Shared Preferences
-	// private SharedPreferences mSharedPreferences;
-	// ===========================================================
-	// Constructors
-	// ===========================================================
-	// ===========================================================
-	// Getter & Setter
-	// ===========================================================
-	// ===========================================================
-	// Methods for/from SuperClass/Interfaces
-	// ===========================================================
+	@Override
+	public Engine onCreateEngine() {
+		// TODO Auto-generated method stub
+		return new MyBaseWallpaperGLEngine(this);
+	}
+	
 	@Override
 	public org.anddev.andengine.engine.Engine onLoadEngine()
 	{
 		context = getBaseContext();
-		Camera mCamera = new Camera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
+		mCamera = new Camera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
 		return new org.anddev.andengine.engine.Engine(new EngineOptions(true, ScreenOrientation.PORTRAIT, new FillResolutionPolicy(), mCamera));
 	}
 
@@ -215,6 +211,11 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 			scene.setBackground(new ColorBackground(0.0f, 0.0f, 0.0f));
 	}
 
+	public synchronized static void drawTitle(boolean draw)
+	{
+		titleSprite.setVisible(draw);
+	}
+	
 	public synchronized static void changeColor(boolean toBlack)
 	{
 		scene.getTopLayer().removeEntity(rightWing);
@@ -235,17 +236,95 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 	}
 
 	@Override
+	public void offsetsChanged(float xOffset, float yOffset, float xOffsetStep,
+			float yOffsetStep, int xPixelOffset, int yPixelOffset) {
+		// TODO Auto-generated method stub
+		float screensCount = (1/xOffsetStep) + 1;
+		
+		if(mCamera != null){
+			
+		              //Emulator has 3 screens
+//			mCamera.setCenter( ((960 * xOffset ) - 240) , mCamera.getCenterY() );
+			/* formel */mCamera.setCenter(((CAMERA_WIDTH * (screensCount - 1)) * xOffset) - (CAMERA_WIDTH / 2), mCamera.getCenterY());
+			
+		}
+	}
+	
+	@Override
 	public void onSharedPreferenceChanged(SharedPreferences pSharedPrefs, String pKey)
 	{}
+	
+	protected class MyBaseWallpaperGLEngine extends GLEngine {
+		// ===========================================================
+		// Fields
+		// ===========================================================
 
-	// ===========================================================
-	// Methods
-	// ===========================================================
-	// ===========================================================
-	// Inner and Anonymous Classes
-	// ===========================================================
-	public synchronized static void drawTitle(boolean draw)
-	{
-		titleSprite.setVisible(draw);
+		private Renderer mRenderer;
+		
+		private IOffsetsChanged mOffsetsChangedListener = null;
+
+		// ===========================================================
+		// Constructors
+		// ===========================================================
+
+		public MyBaseWallpaperGLEngine(IOffsetsChanged pOffsetsChangedListener) {
+			this.setEGLConfigChooser(false);
+			this.mRenderer = new RenderSurfaceView.Renderer(LiveWallpaper.this.mEngine);
+			this.setRenderer(this.mRenderer);
+			this.setRenderMode(RENDERMODE_CONTINUOUSLY);
+			this.mOffsetsChangedListener = pOffsetsChangedListener;
+		}
+
+		// ===========================================================
+		// Methods for/from SuperClass/Interfaces
+		// ===========================================================
+
+		@Override
+		public Bundle onCommand(final String pAction, final int pX, final int pY, final int pZ, final Bundle pExtras, final boolean pResultRequested) {
+			if(pAction.equals(WallpaperManager.COMMAND_TAP)) {
+				LiveWallpaper.this.onTap(pX, pY);
+			} else if (pAction.equals(WallpaperManager.COMMAND_DROP)) {
+				LiveWallpaper.this.onDrop(pX, pY);
+			}
+
+			return super.onCommand(pAction, pX, pY, pZ, pExtras, pResultRequested);
+		}
+
+		@Override
+		public void onResume() {
+			super.onResume();
+			LiveWallpaper.this.getEngine().onResume();
+			LiveWallpaper.this.onResume();
+		}
+
+		@Override
+		public void onPause() {
+			super.onPause();
+			LiveWallpaper.this.getEngine().onPause();
+			LiveWallpaper.this.onPause();
+		}
+
+		@Override
+		public void onDestroy() {
+			super.onDestroy();
+			if (this.mRenderer != null) {
+				// mRenderer.release();
+			}
+			this.mRenderer = null;
+		}
+		
+		@Override
+		public void onOffsetsChanged(float xOffset, float yOffset,
+				float xOffsetStep, float yOffsetStep, int xPixelOffset,
+				int yPixelOffset) {
+			// TODO Auto-generated method stub
+			super.onOffsetsChanged(xOffset, yOffset, xOffsetStep, yOffsetStep,
+					xPixelOffset, yPixelOffset);
+			
+			if(this.mOffsetsChangedListener != null)
+				this.mOffsetsChangedListener.offsetsChanged(xOffset, yOffset, xOffsetStep, yOffsetStep, xPixelOffset, yPixelOffset);
+					
+		}
+		
 	}
 }
