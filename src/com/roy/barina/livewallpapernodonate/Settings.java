@@ -29,10 +29,10 @@ import com.google.ads.AdView;
 
 public class Settings extends PreferenceActivity implements SharedPreferences.OnSharedPreferenceChangeListener
 {
-	public static final String IS_BLACK_SETTING = "isBlack", IS_PAUSED_SETTING = "isPaused", DRAW_TITLE_SETTING = "drawTitle", LOGO_DISTANCE_SETTING = "logoDistance",
-			TITLE_DISTANCE_SETTING = "titleDistance";
+	public static final String IS_BLACK_SETTING = "isBlack", IS_PAUSED_SETTING = "isPaused", DRAW_TITLE_SETTING = "drawTitle", LOGO_TOP_DISTANCE_SETTING = "logoDistance",
+			TITLE_TOP_DISTANCE_SETTING = "titleDistance", LOGO_CENTER_DISTANCE_SETTING = "logoCenterDistance", TITLE_CENTER_DISTANCE_SETTING = "titleCenterDistance";
 	private static boolean isBlack, paused, drawTitle;
-	private static int logoDistance, titleDistance;
+	private static int logoDistance, titleDistance, logoCenterDistance, titleCenterDistance;
 
 	public static boolean getSettingAsBoolean(String settingName)
 	{
@@ -47,10 +47,14 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 
 	public static int getSettingAsInt(String settingName)
 	{
-		if(settingName.equals(TITLE_DISTANCE_SETTING))
+		if(settingName.equals(TITLE_TOP_DISTANCE_SETTING))
 			return titleDistance;
-		if(settingName.equals(LOGO_DISTANCE_SETTING))
+		if(settingName.equals(LOGO_TOP_DISTANCE_SETTING))
 			return logoDistance;
+		if(settingName.equals(TITLE_CENTER_DISTANCE_SETTING))
+			return titleCenterDistance;
+		if(settingName.equals(LOGO_CENTER_DISTANCE_SETTING))
+			return logoCenterDistance;
 		return -1;
 	}
 
@@ -59,7 +63,7 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 	private SeekBar titleSeekBar, logoSeekBar;
 	private TextView titleDistanceTextView, logoDistanceTextView;
 	private Button resetButton;
-	private AdView adView;
+	private AdView adView;// non donation
 
 	@Override
 	protected void onCreate(Bundle icicle)
@@ -82,7 +86,7 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 	{
 		saveSettings();
 		getPreferenceManager().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
-		getAdView().destroy();
+		getAdView().destroy();// non donation
 		super.onDestroy();
 	}
 
@@ -96,6 +100,13 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 		{
 			linearLayout = new LinearLayout(this);
 			linearLayout.setOrientation(LinearLayout.VERTICAL);
+			linearLayout.addView(getAdView()); // non donation
+			final TextView textView = new TextView(this);
+			textView.setText("Please donate.. :)");// non donation
+			textView.setTextColor(Color.RED);// non donation
+			textView.setTextSize(20);
+			textView.setBackgroundColor(Color.argb(190, 0, 0, 0));
+			linearLayout.addView(textView);
 			linearLayout.addView(getIsBlackCheckBox());
 			linearLayout.addView(getPausedCheckBox());
 			linearLayout.addView(getDrawTitleCheckBox());
@@ -104,14 +115,7 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 			linearLayout.addView(getLogoDistanceTextView());
 			linearLayout.addView(getLogoSeekBar());
 			linearLayout.addView(getResetButton());
-			final TextView textView = new TextView(this);
-			textView.setText("Please donate.. :)");
-			textView.setTextColor(Color.RED);
-			textView.setTextSize(20);
-			textView.setBackgroundColor(Color.argb(190, 0, 0, 0));
-			linearLayout.addView(textView);
-			linearLayout.addView(getAdView());
-			getAdView().loadAd(new AdRequest());
+			getAdView().loadAd(new AdRequest());// non donation
 		}
 		return linearLayout;
 	}
@@ -185,7 +189,7 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 		return drawTitleCheckBox;
 	}
 
-	public AdView getAdView()
+	public AdView getAdView()// non donation
 	{
 		if(adView == null)
 			adView = new AdView(this, AdSize.BANNER, "a14ebf22b8e1ba6");
@@ -223,7 +227,7 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 			titleSeekBar = new SeekBar(this);
 			titleSeekBar.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
 			titleSeekBar.setMax(LiveWallpaper.CAMERA_HEIGHT);
-			int distance = getSettingAsInt(TITLE_DISTANCE_SETTING);
+			int distance = getSettingAsInt(TITLE_TOP_DISTANCE_SETTING);
 			titleSeekBar.setProgress(distance <= -1 ? 100 : distance);
 			titleSeekBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener()
 			{
@@ -256,7 +260,7 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 			logoSeekBar = new SeekBar(this);
 			logoSeekBar.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
 			logoSeekBar.setMax(LiveWallpaper.CAMERA_HEIGHT);
-			int distance = getSettingAsInt(LOGO_DISTANCE_SETTING);
+			int distance = getSettingAsInt(LOGO_TOP_DISTANCE_SETTING);
 			logoSeekBar.setProgress(distance <= -1 ? 400 : distance);
 			logoSeekBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener()
 			{
@@ -328,10 +332,14 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 		isBlack = getBooleanSetting(IS_BLACK_SETTING);
 		paused = getBooleanSetting(IS_PAUSED_SETTING);
 		drawTitle = getBooleanSetting(DRAW_TITLE_SETTING);
-		if((logoDistance = getIntSetting(LOGO_DISTANCE_SETTING)) <= -1)
+		if((logoDistance = getIntSetting(LOGO_TOP_DISTANCE_SETTING)) <= -1)
 			logoDistance = 400;
-		if((titleDistance = getIntSetting(TITLE_DISTANCE_SETTING)) <= -1)
+		if((titleDistance = getIntSetting(TITLE_TOP_DISTANCE_SETTING)) <= -1)
 			titleDistance = 100;
+		if((logoCenterDistance = getIntSetting(LOGO_CENTER_DISTANCE_SETTING)) <= -1)
+			logoCenterDistance = 0;
+		if((titleCenterDistance = getIntSetting(TITLE_CENTER_DISTANCE_SETTING)) <= -1)
+			titleCenterDistance = 0;
 	}
 
 	private static void saveSettings()
@@ -339,8 +347,10 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 		setSetting(IS_BLACK_SETTING, isBlack);
 		setSetting(IS_PAUSED_SETTING, paused);
 		setSetting(DRAW_TITLE_SETTING, drawTitle);
-		setSetting(LOGO_DISTANCE_SETTING, logoDistance);
-		setSetting(TITLE_DISTANCE_SETTING, titleDistance);
+		setSetting(LOGO_TOP_DISTANCE_SETTING, logoDistance);
+		setSetting(TITLE_TOP_DISTANCE_SETTING, titleDistance);
+		setSetting(LOGO_CENTER_DISTANCE_SETTING, logoCenterDistance);
+		setSetting(TITLE_CENTER_DISTANCE_SETTING, titleCenterDistance);
 	}
 
 	private void resetSettings()
@@ -348,8 +358,10 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 		setSetting(IS_BLACK_SETTING, isBlack = false);
 		setSetting(IS_PAUSED_SETTING, paused = false);
 		setSetting(DRAW_TITLE_SETTING, drawTitle = true);
-		setSetting(LOGO_DISTANCE_SETTING, logoDistance = 400);
-		setSetting(TITLE_DISTANCE_SETTING, titleDistance = 100);
+		setSetting(LOGO_TOP_DISTANCE_SETTING, logoDistance = 400);
+		setSetting(TITLE_TOP_DISTANCE_SETTING, titleDistance = 100);
+		setSetting(LOGO_CENTER_DISTANCE_SETTING, logoCenterDistance = 0);
+		setSetting(TITLE_CENTER_DISTANCE_SETTING, titleCenterDistance = 0);
 		finish();
 		LiveWallpaper.changeColor(isBlack);
 	}
