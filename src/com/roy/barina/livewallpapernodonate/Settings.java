@@ -428,10 +428,8 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 			logoDistance = 400;
 		if((titleDistance = getIntSetting(TITLE_TOP_DISTANCE_SETTING)) <= -1)
 			titleDistance = 100;
-		if((logoCenterDistance = getIntSetting(LOGO_CENTER_DISTANCE_SETTING)) <= -1)
-			logoCenterDistance = 0;
-		if((titleCenterDistance = getIntSetting(TITLE_CENTER_DISTANCE_SETTING)) <= -1)
-			titleCenterDistance = 0;
+		logoCenterDistance = getIntSetting(LOGO_CENTER_DISTANCE_SETTING);
+		titleCenterDistance = getIntSetting(TITLE_CENTER_DISTANCE_SETTING);
 	}
 
 	private static void saveSettings()
