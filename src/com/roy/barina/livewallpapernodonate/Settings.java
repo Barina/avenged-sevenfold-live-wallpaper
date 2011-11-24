@@ -22,7 +22,6 @@ import android.widget.FrameLayout.LayoutParams;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
-import android.widget.Spinner;
 import android.widget.TextView;
 import com.google.ads.AdRequest;
 import com.google.ads.AdSize;
@@ -34,30 +33,6 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 			TITLE_TOP_DISTANCE_SETTING = "titleDistance", LOGO_CENTER_DISTANCE_SETTING = "logoCenterDistance", TITLE_CENTER_DISTANCE_SETTING = "titleCenterDistance";
 	private static boolean isBlack, paused, drawTitle;
 	private static int logoDistance, titleDistance, logoCenterDistance, titleCenterDistance;
-
-	public static boolean getSettingAsBoolean(String settingName)
-	{
-		if(settingName.equals(IS_BLACK_SETTING))
-			return isBlack;
-		if(settingName.equals(IS_PAUSED_SETTING))
-			return paused;
-		if(settingName.equals(DRAW_TITLE_SETTING))
-			return drawTitle;
-		throw new InvalidParameterException("Bad request.");
-	}
-
-	public static int getSettingAsInt(String settingName)
-	{
-		if(settingName.equals(TITLE_TOP_DISTANCE_SETTING))
-			return titleDistance;
-		if(settingName.equals(LOGO_TOP_DISTANCE_SETTING))
-			return logoDistance;
-		if(settingName.equals(TITLE_CENTER_DISTANCE_SETTING))
-			return titleCenterDistance;
-		if(settingName.equals(LOGO_CENTER_DISTANCE_SETTING))
-			return logoCenterDistance;
-		return -1;
-	}
 
 	private LinearLayout linearLayout;
 	private CheckBox isBlackCheckBox, pausedCheckBox, drawTitleCheckBox;
@@ -95,6 +70,30 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key)
 	{}
 
+	public static boolean getSettingAsBoolean(String settingName)
+	{
+		if(settingName.equals(IS_BLACK_SETTING))
+			return isBlack;
+		if(settingName.equals(IS_PAUSED_SETTING))
+			return paused;
+		if(settingName.equals(DRAW_TITLE_SETTING))
+			return drawTitle;
+		throw new InvalidParameterException("Bad request.");
+	}
+
+	public static int getSettingAsInt(String settingName)
+	{
+		if(settingName.equals(TITLE_TOP_DISTANCE_SETTING))
+			return titleDistance;
+		if(settingName.equals(LOGO_TOP_DISTANCE_SETTING))
+			return logoDistance;
+		if(settingName.equals(TITLE_CENTER_DISTANCE_SETTING))
+			return titleCenterDistance;
+		if(settingName.equals(LOGO_CENTER_DISTANCE_SETTING))
+			return logoCenterDistance;
+		return -1;
+	}
+
 	public LinearLayout getLinearLayout()
 	{
 		if(linearLayout == null)
@@ -115,14 +114,21 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 			linearLayout.addView(getTitleSeekBar());
 			linearLayout.addView(getLogoDistanceTextView());
 			linearLayout.addView(getLogoSeekBar());
-			linearLayout.addView(getTitleCenterDistanceTextView());			
+			linearLayout.addView(getTitleCenterDistanceTextView());
 			linearLayout.addView(getTitleCenterSeekBar());
 			linearLayout.addView(getLogoCenterDistanceTextView());
-			linearLayout.addView(getLogoCenterSeekBar());			
+			linearLayout.addView(getLogoCenterSeekBar());
 			linearLayout.addView(getResetButton());
 			getAdView().loadAd(new AdRequest());// non donation
 		}
 		return linearLayout;
+	}
+
+	public AdView getAdView()// non donation
+	{
+		if(adView == null)
+			adView = new AdView(this, AdSize.BANNER, "a14ebf22b8e1ba6");
+		return adView;
 	}
 
 	public CheckBox getIsBlackCheckBox()
@@ -192,13 +198,6 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 			});
 		}
 		return drawTitleCheckBox;
-	}
-
-	public AdView getAdView()// non donation
-	{
-		if(adView == null)
-			adView = new AdView(this, AdSize.BANNER, "a14ebf22b8e1ba6");
-		return adView;
 	}
 
 	public TextView getTitleDistanceTextView()
@@ -322,7 +321,7 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 			titleCenterSeekBar = new SeekBar(this);
 			titleCenterSeekBar.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
 			titleCenterSeekBar.setMax(LiveWallpaper.CAMERA_WIDTH * 7);
-			titleCenterSeekBar.setProgress(getSettingAsInt(TITLE_CENTER_DISTANCE_SETTING)+ (int)((LiveWallpaper.CAMERA_WIDTH * 7) * 0.5f));
+			titleCenterSeekBar.setProgress(getSettingAsInt(TITLE_CENTER_DISTANCE_SETTING) + (int)((LiveWallpaper.CAMERA_WIDTH * 7) * 0.5f));
 			titleCenterSeekBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener()
 			{
 				@Override
