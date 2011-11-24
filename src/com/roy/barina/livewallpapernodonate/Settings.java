@@ -22,6 +22,7 @@ import android.widget.FrameLayout.LayoutParams;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
+import android.widget.Spinner;
 import android.widget.TextView;
 import com.google.ads.AdRequest;
 import com.google.ads.AdSize;
@@ -60,8 +61,8 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 
 	private LinearLayout linearLayout;
 	private CheckBox isBlackCheckBox, pausedCheckBox, drawTitleCheckBox;
-	private SeekBar titleSeekBar, logoSeekBar;
-	private TextView titleDistanceTextView, logoDistanceTextView;
+	private SeekBar titleSeekBar, logoSeekBar, titleCenterSeekBar, logoCenterSeekBar;
+	private TextView titleDistanceTextView, logoDistanceTextView, titleCenterDistanceTextView, logoCenterDistanceTextView;
 	private Button resetButton;
 	private AdView adView;// non donation
 
@@ -114,6 +115,10 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 			linearLayout.addView(getTitleSeekBar());
 			linearLayout.addView(getLogoDistanceTextView());
 			linearLayout.addView(getLogoSeekBar());
+			linearLayout.addView(getTitleCenterDistanceTextView());			
+			linearLayout.addView(getTitleCenterSeekBar());
+			linearLayout.addView(getLogoCenterDistanceTextView());
+			linearLayout.addView(getLogoCenterSeekBar());			
 			linearLayout.addView(getResetButton());
 			getAdView().loadAd(new AdRequest());// non donation
 		}
@@ -201,7 +206,7 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 		if(titleDistanceTextView == null)
 		{
 			titleDistanceTextView = new TextView(this);
-			titleDistanceTextView.setText("Title distance from ceiling: " + getTitleSeekBar().getProgress());
+			titleDistanceTextView.setText("Title distance from ceiling: " + titleDistance);
 			titleDistanceTextView.setTextColor(Color.WHITE);
 			titleDistanceTextView.setBackgroundColor(Color.argb(190, 0, 0, 0));
 		}
@@ -213,11 +218,35 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 		if(logoDistanceTextView == null)
 		{
 			logoDistanceTextView = new TextView(this);
-			logoDistanceTextView.setText("Logo distance from ceiling: " + getLogoSeekBar().getProgress());
+			logoDistanceTextView.setText("Logo distance from ceiling: " + logoDistance);
 			logoDistanceTextView.setTextColor(Color.WHITE);
 			logoDistanceTextView.setBackgroundColor(Color.argb(190, 0, 0, 0));
 		}
 		return logoDistanceTextView;
+	}
+
+	public TextView getTitleCenterDistanceTextView()
+	{
+		if(titleCenterDistanceTextView == null)
+		{
+			titleCenterDistanceTextView = new TextView(this);
+			titleCenterDistanceTextView.setText("Title distance from center: " + titleCenterDistance);
+			titleCenterDistanceTextView.setTextColor(Color.WHITE);
+			titleCenterDistanceTextView.setBackgroundColor(Color.argb(190, 0, 0, 0));
+		}
+		return titleCenterDistanceTextView;
+	}
+
+	public TextView getLogoCenterDistanceTextView()
+	{
+		if(logoCenterDistanceTextView == null)
+		{
+			logoCenterDistanceTextView = new TextView(this);
+			logoCenterDistanceTextView.setText("Logo distance from center: " + logoCenterDistance);
+			logoCenterDistanceTextView.setTextColor(Color.WHITE);
+			logoCenterDistanceTextView.setBackgroundColor(Color.argb(190, 0, 0, 0));
+		}
+		return logoCenterDistanceTextView;
 	}
 
 	public SeekBar getTitleSeekBar()
@@ -284,6 +313,70 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 			});
 		}
 		return logoSeekBar;
+	}
+
+	public SeekBar getTitleCenterSeekBar()
+	{
+		if(titleCenterSeekBar == null)
+		{
+			titleCenterSeekBar = new SeekBar(this);
+			titleCenterSeekBar.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+			titleCenterSeekBar.setMax(LiveWallpaper.CAMERA_WIDTH * 7);
+			titleCenterSeekBar.setProgress(getSettingAsInt(TITLE_CENTER_DISTANCE_SETTING)+ (int)((LiveWallpaper.CAMERA_WIDTH * 7) * 0.5f));
+			titleCenterSeekBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener()
+			{
+				@Override
+				public void onStopTrackingTouch(SeekBar seekBar)
+				{
+					LiveWallpaper.changeColor(isBlack);
+				}
+
+				@Override
+				public void onStartTrackingTouch(SeekBar seekBar)
+				{}
+
+				@Override
+				public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
+				{
+					if(fromUser)
+						titleCenterDistance = progress - (int)((LiveWallpaper.CAMERA_WIDTH * 7) * 0.5f);
+					getTitleCenterDistanceTextView().setText("Title distance from center: " + titleCenterDistance);
+				}
+			});
+		}
+		return titleCenterSeekBar;
+	}
+
+	public SeekBar getLogoCenterSeekBar()
+	{
+		if(logoCenterSeekBar == null)
+		{
+			logoCenterSeekBar = new SeekBar(this);
+			logoCenterSeekBar.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+			logoCenterSeekBar.setMax(LiveWallpaper.CAMERA_WIDTH * 7);
+			logoCenterSeekBar.setProgress(getSettingAsInt(LOGO_CENTER_DISTANCE_SETTING) + (int)((LiveWallpaper.CAMERA_WIDTH * 7) * 0.5f));
+			logoCenterSeekBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener()
+			{
+				@Override
+				public void onStopTrackingTouch(SeekBar seekBar)
+				{
+					LiveWallpaper.changeColor(isBlack);
+				}
+
+				@Override
+				public void onStartTrackingTouch(SeekBar seekBar)
+				{}
+
+				@Override
+				public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
+				{
+					if(fromUser)
+						logoCenterDistance = progress - (int)((LiveWallpaper.CAMERA_WIDTH * 7) * 0.5f);
+					getLogoCenterDistanceTextView().setText("Logo distance from center: " + logoCenterDistance);
+				}
+			});
+		}
+		return logoCenterSeekBar;
 	}
 
 	public Button getResetButton()

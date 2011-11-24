@@ -75,8 +75,8 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 		jawRegion = TextureRegionFactory.createFromAsset(texture, context, color + "jaw.png", 1, 361);
 		titleRegion = TextureRegionFactory.createFromAsset(titleTexture, context, color + "title.png", 0, 0);
 		engine.getTextureManager().loadTextures(texture, titleTexture);
-		final int logoTopDistance = Settings.getSettingAsInt(Settings.LOGO_TOP_DISTANCE_SETTING), titleTopDistance = Settings.getSettingAsInt(Settings.TITLE_TOP_DISTANCE_SETTING), 
-		logoCenterDistance = Settings.getSettingAsInt(Settings.LOGO_CENTER_DISTANCE_SETTING), titleCenterDistance = Settings.getSettingAsInt(Settings.TITLE_CENTER_DISTANCE_SETTING);
+		final int logoTopDistance = Settings.getSettingAsInt(Settings.LOGO_TOP_DISTANCE_SETTING), titleTopDistance = Settings.getSettingAsInt(Settings.TITLE_TOP_DISTANCE_SETTING), logoCenterDistance = Settings
+				.getSettingAsInt(Settings.LOGO_CENTER_DISTANCE_SETTING), titleCenterDistance = Settings.getSettingAsInt(Settings.TITLE_CENTER_DISTANCE_SETTING);
 		skull = new Sprite(-(skullRegion.getWidth() * 0.5f) + logoCenterDistance, logoTopDistance, skullRegion);
 		rightWing = new Sprite(-(rightWingRegion.getWidth() * 0.5f) + rightWingRegion.getWidth() * 0.8f + logoCenterDistance, logoTopDistance + 20, rightWingRegion);
 		rightWing.setRotationCenterX(0);
@@ -264,14 +264,10 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 		public Bundle onCommand(final String pAction, final int pX, final int pY, final int pZ, final Bundle pExtras, final boolean pResultRequested)
 		{
 			if(pAction.equals(WallpaperManager.COMMAND_TAP))
-			{
 				LiveWallpaper.this.onTap(pX, pY);
-			}
 			else
 				if(pAction.equals(WallpaperManager.COMMAND_DROP))
-				{
 					LiveWallpaper.this.onDrop(pX, pY);
-				}
 			return super.onCommand(pAction, pX, pY, pZ, pExtras, pResultRequested);
 		}
 
