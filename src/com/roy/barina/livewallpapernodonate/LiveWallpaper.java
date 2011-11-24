@@ -12,10 +12,7 @@ import org.anddev.andengine.entity.shape.modifier.MoveModifier;
 import org.anddev.andengine.entity.shape.modifier.RotationModifier;
 import org.anddev.andengine.entity.shape.modifier.SequenceModifier;
 import org.anddev.andengine.entity.sprite.Sprite;
-import org.anddev.andengine.entity.text.ChangeableText;
 import org.anddev.andengine.extension.ui.livewallpaper.BaseLiveWallpaperService;
-import org.anddev.andengine.opengl.font.Font;
-import org.anddev.andengine.opengl.font.FontFactory;
 import org.anddev.andengine.opengl.texture.Texture;
 import org.anddev.andengine.opengl.texture.TextureOptions;
 import org.anddev.andengine.opengl.texture.region.TextureRegion;
@@ -25,7 +22,6 @@ import org.anddev.andengine.opengl.view.RenderSurfaceView.Renderer;
 import android.app.WallpaperManager;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.Bundle;
 
 public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPreferences.OnSharedPreferenceChangeListener, IOffsetsChanged
@@ -34,9 +30,7 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 	protected static final int CAMERA_WIDTH = 540;
 	protected static final int CAMERA_HEIGHT = 960;
 	private static Camera mCamera = null;
-	private static Texture texture, titleTexture, fontTexture;
-	private static Font font;
-	private static ChangeableText titleText;
+	private static Texture texture, titleTexture;
 	private static Sprite skull, jaw, rightWing, leftWing, titleSprite;
 	private static TextureRegion skullRegion, leftWingRegion, rightWingRegion, jawRegion, titleRegion;
 	private static Context context;
@@ -63,11 +57,6 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 	{
 		engine = getEngine();
 		Settings.loadContext(getBaseContext());
-		fontTexture = new Texture(512, 512, TextureOptions.BILINEAR);
-		font = FontFactory.createFromAsset(fontTexture, this, "font/CHILLER.TTF", 24, true, Settings.getSettingAsBoolean(Settings.IS_BLACK_SETTING) ? Color.BLACK : Color.WHITE);
-		titleText = new ChangeableText(10, 10, font, "", "xxxxx-< maximum length >-xxxxx".length());
-		engine.getTextureManager().loadTexture(fontTexture);
-		engine.getFontManager().loadFont(font);
 		// Set the Base Texture Path
 		TextureRegionFactory.setAssetBasePath("gfx/");
 		initTextureRegions(Settings.getSettingAsBoolean(Settings.IS_BLACK_SETTING));
@@ -75,11 +64,6 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 
 	private synchronized static void initTextureRegions(Boolean isBlack)
 	{
-		titleText.setText("testing 1.. 2.. 3..");
-		if(isBlack)
-			titleText.setColor(0, 0, 0);
-		else
-			titleText.setColor(255, 255, 255);
 		if(texture != null)
 			engine.getTextureManager().unloadTexture(texture);
 		texture = new Texture(256, 512, TextureOptions.REPEATING);
@@ -201,7 +185,6 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 		scene = new Scene(1);
 		setSceneBGColor(Settings.getSettingAsBoolean(Settings.IS_BLACK_SETTING));
 		addSpritesToScene();
-		scene.getTopLayer().addEntity(titleText);
 		return scene;
 	}
 
@@ -221,11 +204,10 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 
 	private synchronized static void setSceneBGColor(boolean isBlack)
 	{
-//		if(isBlack)
-//			scene.setBackground(new ColorBackground(1.0f, 1.0f, 1.0f));
-//		else
-//			scene.setBackground(new ColorBackground(0.0f, 0.0f, 0.0f));
-		scene.setBackground(new ColorBackground(0.5f, 0.5f, 0.5f));
+		if(isBlack)
+			scene.setBackground(new ColorBackground(1.0f, 1.0f, 1.0f));
+		else
+			scene.setBackground(new ColorBackground(0.0f, 0.0f, 0.0f));
 	}
 
 	public synchronized static void drawTitle(boolean draw)
