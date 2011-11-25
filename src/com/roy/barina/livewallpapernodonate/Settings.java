@@ -259,7 +259,7 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 		{
 			titleSeekBar = new SeekBar(this);
 			titleSeekBar.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
-			titleSeekBar.setMax(LiveWallpaper.CAMERA_HEIGHT);
+			titleSeekBar.setMax(CAMERA_HEIGHT);
 			int distance = getSettingAsInt(TITLE_TOP_DISTANCE_SETTING);
 			titleSeekBar.setProgress(distance <= -1 ? 100 : distance);
 			titleSeekBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener()
@@ -292,7 +292,7 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 		{
 			logoSeekBar = new SeekBar(this);
 			logoSeekBar.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
-			logoSeekBar.setMax(LiveWallpaper.CAMERA_HEIGHT);
+			logoSeekBar.setMax(CAMERA_HEIGHT);
 			int distance = getSettingAsInt(LOGO_TOP_DISTANCE_SETTING);
 			logoSeekBar.setProgress(distance <= -1 ? 400 : distance);
 			logoSeekBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener()
@@ -325,8 +325,8 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 		{
 			titleCenterSeekBar = new SeekBar(this);
 			titleCenterSeekBar.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
-			titleCenterSeekBar.setMax(LiveWallpaper.CAMERA_WIDTH * 3);
-			titleCenterSeekBar.setProgress(getSettingAsInt(TITLE_CENTER_DISTANCE_SETTING) + (int)((LiveWallpaper.CAMERA_WIDTH * 3) * 0.5f));
+			titleCenterSeekBar.setMax(CAMERA_WIDTH * 3);
+			titleCenterSeekBar.setProgress(getSettingAsInt(TITLE_CENTER_DISTANCE_SETTING) + (int)((CAMERA_WIDTH * 3) * 0.5f));
 			titleCenterSeekBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener()
 			{
 				@Override
@@ -343,7 +343,7 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 				public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
 				{
 					if(fromUser){
-						titleCenterDistance = progress - (int)((LiveWallpaper.CAMERA_WIDTH * 3) * 0.5f);
+						titleCenterDistance = progress - (int)((CAMERA_WIDTH * 3) * 0.5f);
 					getTitleCenterDistanceTextView().setText("Title distance from center: " + titleCenterDistance);}
 				}
 			});
@@ -357,8 +357,8 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 		{
 			logoCenterSeekBar = new SeekBar(this);
 			logoCenterSeekBar.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
-			logoCenterSeekBar.setMax(LiveWallpaper.CAMERA_WIDTH * 3);
-			logoCenterSeekBar.setProgress(getSettingAsInt(LOGO_CENTER_DISTANCE_SETTING) + (int)((LiveWallpaper.CAMERA_WIDTH * 3) * 0.5f));
+			logoCenterSeekBar.setMax(CAMERA_WIDTH * 3);
+			logoCenterSeekBar.setProgress(getSettingAsInt(LOGO_CENTER_DISTANCE_SETTING) + (int)((CAMERA_WIDTH * 3) * 0.5f));
 			logoCenterSeekBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener()
 			{
 				@Override
@@ -375,7 +375,7 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 				public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
 				{
 					if(fromUser){
-						logoCenterDistance = progress - (int)((LiveWallpaper.CAMERA_WIDTH * 3) * 0.5f);
+						logoCenterDistance = progress - (int)((CAMERA_WIDTH * 3) * 0.5f);
 					getLogoCenterDistanceTextView().setText("Logo distance from center: " + logoCenterDistance);}
 				}
 			});

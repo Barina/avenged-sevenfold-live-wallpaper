@@ -23,8 +23,6 @@ import android.content.SharedPreferences;
 public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPreferences.OnSharedPreferenceChangeListener, SettingsConstants//, IOffsetsChanged
 {
 	public static final String SHARED_PREFS_NAME = "livewallpapertemplatesettings";
-	protected static final int CAMERA_WIDTH = 540;
-	protected static final int CAMERA_HEIGHT = 960;
 	private static Camera mCamera = null;
 	private static Texture texture, titleTexture;
 	private static Sprite skull, jaw, rightWing, leftWing, titleSprite;
