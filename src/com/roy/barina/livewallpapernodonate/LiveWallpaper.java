@@ -17,14 +17,10 @@ import org.anddev.andengine.opengl.texture.Texture;
 import org.anddev.andengine.opengl.texture.TextureOptions;
 import org.anddev.andengine.opengl.texture.region.TextureRegion;
 import org.anddev.andengine.opengl.texture.region.TextureRegionFactory;
-import org.anddev.andengine.opengl.view.RenderSurfaceView;
-import org.anddev.andengine.opengl.view.RenderSurfaceView.Renderer;
-import android.app.WallpaperManager;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Bundle;
 
-public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPreferences.OnSharedPreferenceChangeListener, IOffsetsChanged
+public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPreferences.OnSharedPreferenceChangeListener, SettingsConstants//, IOffsetsChanged
 {
 	public static final String SHARED_PREFS_NAME = "livewallpapertemplatesettings";
 	protected static final int CAMERA_WIDTH = 540;
@@ -37,11 +33,11 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 	private static Scene scene;
 	private static org.anddev.andengine.engine.Engine engine;
 
-	@Override
-	public Engine onCreateEngine()
-	{
-		return new MyBaseWallpaperGLEngine(this);
-	}
+//	@Override
+//	public Engine onCreateEngine()
+//	{
+//		return new MyBaseWallpaperGLEngine(this);
+//	}
 
 	@Override
 	public org.anddev.andengine.engine.Engine onLoadEngine()
@@ -59,9 +55,50 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 		Settings.loadContext(getBaseContext());
 		// Set the Base Texture Path
 		TextureRegionFactory.setAssetBasePath("gfx/");
-		initTextureRegions(Settings.getSettingAsBoolean(Settings.IS_BLACK_SETTING));
+		initTextureRegions(Settings.getSettingAsBoolean(IS_BLACK_SETTING));
 	}
 
+	@Override
+	public synchronized Scene onLoadScene()
+	{
+		scene = new Scene(1);
+		setSceneBGColor(Settings.getSettingAsBoolean(IS_BLACK_SETTING));
+		addSpritesToScene();
+		return scene;
+	}
+
+	@Override
+	public void onLoadComplete()
+	{
+		pauseScene(Settings.getSettingAsBoolean(IS_PAUSED_SETTING));
+	}
+
+//	@Override
+//	public void offsetsChanged(float xOffset, float yOffset, float xOffsetStep, float yOffsetStep, int xPixelOffset, int yPixelOffset)
+//	{
+//		float screensCount = (1 / xOffsetStep) + 1;
+//		if(mCamera != null)
+//			mCamera.setCenter(((CAMERA_WIDTH * (screensCount - 1)) * xOffset) - CAMERA_WIDTH, mCamera.getCenterY());
+//	}
+
+	@Override
+	public void onSharedPreferenceChanged(SharedPreferences pSharedPrefs, String pKey)
+	{}
+
+	@Override
+	protected void onPause()
+	{
+		pauseScene(true);
+		super.onPause();
+	}
+	
+	@Override
+	protected void onResume()
+	{
+		pauseScene(Settings.getSettingAsBoolean(IS_PAUSED_SETTING));
+		super.onResume();
+	}
+	
 	private synchronized static void initTextureRegions(Boolean isBlack)
 	{
 		if(texture != null)
@@ -75,8 +112,8 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 		jawRegion = TextureRegionFactory.createFromAsset(texture, context, color + "jaw.png", 1, 361);
 		titleRegion = TextureRegionFactory.createFromAsset(titleTexture, context, color + "title.png", 0, 0);
 		engine.getTextureManager().loadTextures(texture, titleTexture);
-		final int logoTopDistance = Settings.getSettingAsInt(Settings.LOGO_TOP_DISTANCE_SETTING), titleTopDistance = Settings.getSettingAsInt(Settings.TITLE_TOP_DISTANCE_SETTING), logoCenterDistance = Settings
-				.getSettingAsInt(Settings.LOGO_CENTER_DISTANCE_SETTING), titleCenterDistance = Settings.getSettingAsInt(Settings.TITLE_CENTER_DISTANCE_SETTING);
+		final int logoTopDistance = Settings.getSettingAsInt(LOGO_TOP_DISTANCE_SETTING), titleTopDistance = Settings.getSettingAsInt(TITLE_TOP_DISTANCE_SETTING), 
+		logoCenterDistance = Settings.getSettingAsInt(LOGO_CENTER_DISTANCE_SETTING), titleCenterDistance = Settings.getSettingAsInt(TITLE_CENTER_DISTANCE_SETTING);
 		skull = new Sprite(-(skullRegion.getWidth() * 0.5f) + logoCenterDistance, logoTopDistance, skullRegion);
 		rightWing = new Sprite(-(rightWingRegion.getWidth() * 0.5f) + rightWingRegion.getWidth() * 0.8f + logoCenterDistance, logoTopDistance + 20, rightWingRegion);
 		rightWing.setRotationCenterX(0);
@@ -101,7 +138,7 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 			}
 		}, new MoveModifier(2, titleSprite.getX(), titleSprite.getX(), titleSprite.getY(), titleSprite.getY() + 20), new MoveModifier(2, titleSprite.getX(), titleSprite.getX(),
 				titleSprite.getY() + 20, titleSprite.getY())));
-		titleSprite.setVisible(Settings.getSettingAsBoolean(Settings.DRAW_TITLE_SETTING));
+		titleSprite.setVisible(Settings.getSettingAsBoolean(DRAW_TITLE_SETTING));
 		final SequenceModifier skullSequenceModifier = new SequenceModifier(new MoveModifier(2, skull.getX(), skull.getX(), skull.getY(), skull.getY() + 50), new MoveModifier(
 				0.5f, skull.getX(), skull.getX(), skull.getY() + 50, skull.getY()));
 		skullSequenceModifier.setShapeModifierListener(new IShapeModifier.IShapeModifierListener()
@@ -171,7 +208,9 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 
 	private synchronized static void updateDistances()
 	{
-		final int logoDistance = Settings.getSettingAsInt(Settings.LOGO_TOP_DISTANCE_SETTING), titleDistance = Settings.getSettingAsInt(Settings.TITLE_TOP_DISTANCE_SETTING);
+		if(skull == null || rightWing == null || leftWing == null || jaw == null || titleSprite == null)
+			return;
+		final int logoDistance = Settings.getSettingAsInt(LOGO_TOP_DISTANCE_SETTING), titleDistance = Settings.getSettingAsInt(TITLE_TOP_DISTANCE_SETTING);
 		skull.setPosition(skull.getX(), logoDistance);
 		rightWing.setPosition(rightWing.getX(), logoDistance + 20);
 		leftWing.setPosition(leftWing.getX(), logoDistance + 20);
@@ -179,22 +218,16 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 		titleSprite.setPosition(titleSprite.getX(), titleDistance);
 	}
 
-	@Override
-	public synchronized Scene onLoadScene()
-	{
-		scene = new Scene(1);
-		setSceneBGColor(Settings.getSettingAsBoolean(Settings.IS_BLACK_SETTING));
-		addSpritesToScene();
-		return scene;
-	}
-
 	public synchronized static void pauseScene(boolean pause)
 	{
-		scene.setIgnoreUpdate(pause);
+		if(scene != null)
+			scene.setIgnoreUpdate(pause);
 	}
 
 	private synchronized static void addSpritesToScene()
 	{
+		if(scene == null)
+			return;
 		scene.getTopLayer().addEntity(rightWing);
 		scene.getTopLayer().addEntity(leftWing);
 		scene.getTopLayer().addEntity(jaw);
@@ -204,19 +237,23 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 
 	private synchronized static void setSceneBGColor(boolean isBlack)
 	{
-		if(isBlack)
-			scene.setBackground(new ColorBackground(1.0f, 1.0f, 1.0f));
-		else
-			scene.setBackground(new ColorBackground(0.0f, 0.0f, 0.0f));
+		if(scene != null)
+			if(isBlack)
+				scene.setBackground(new ColorBackground(1.0f, 1.0f, 1.0f));
+			else
+				scene.setBackground(new ColorBackground(0.0f, 0.0f, 0.0f));
 	}
 
 	public synchronized static void drawTitle(boolean draw)
 	{
-		titleSprite.setVisible(draw);
+		if(titleSprite != null)
+			titleSprite.setVisible(draw);
 	}
 
 	public synchronized static void changeColor(boolean toBlack)
 	{
+		if(scene == null)
+			return;
 		scene.getTopLayer().removeEntity(rightWing);
 		scene.getTopLayer().removeEntity(leftWing);
 		scene.getTopLayer().removeEntity(jaw);
@@ -228,81 +265,63 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 		addSpritesToScene();
 	}
 
-	@Override
-	public void onLoadComplete()
-	{
-		pauseScene(Settings.getSettingAsBoolean(Settings.IS_PAUSED_SETTING));
-	}
-
-	@Override
-	public void offsetsChanged(float xOffset, float yOffset, float xOffsetStep, float yOffsetStep, int xPixelOffset, int yPixelOffset)
-	{
-		float screensCount = (1 / xOffsetStep) + 1;
-		if(mCamera != null)
-			mCamera.setCenter(((CAMERA_WIDTH * (screensCount - 1)) * xOffset) - CAMERA_WIDTH, mCamera.getCenterY());
-	}
-
-	@Override
-	public void onSharedPreferenceChanged(SharedPreferences pSharedPrefs, String pKey)
-	{}
-
-	protected class MyBaseWallpaperGLEngine extends GLEngine
-	{
-		private Renderer mRenderer;
-		private IOffsetsChanged mOffsetsChangedListener = null;
-
-		public MyBaseWallpaperGLEngine(IOffsetsChanged pOffsetsChangedListener)
-		{
-			this.setEGLConfigChooser(false);
-			this.mRenderer = new RenderSurfaceView.Renderer(LiveWallpaper.this.mEngine);
-			this.setRenderer(this.mRenderer);
-			this.setRenderMode(RENDERMODE_CONTINUOUSLY);
-			this.mOffsetsChangedListener = pOffsetsChangedListener;
-		}
-
-		@Override
-		public Bundle onCommand(final String pAction, final int pX, final int pY, final int pZ, final Bundle pExtras, final boolean pResultRequested)
-		{
-			if(pAction.equals(WallpaperManager.COMMAND_TAP))
-				LiveWallpaper.this.onTap(pX, pY);
-			else
-				if(pAction.equals(WallpaperManager.COMMAND_DROP))
-					LiveWallpaper.this.onDrop(pX, pY);
-			return super.onCommand(pAction, pX, pY, pZ, pExtras, pResultRequested);
-		}
-
-		@Override
-		public void onResume()
-		{
-			super.onResume();
-			LiveWallpaper.this.getEngine().onResume();
-			LiveWallpaper.this.onResume();
-		}
-
-		@Override
-		public void onPause()
-		{
-			super.onPause();
-			LiveWallpaper.this.getEngine().onPause();
-			LiveWallpaper.this.onPause();
-		}
-
-		@Override
-		public void onDestroy()
-		{
-			super.onDestroy();
-			if(this.mRenderer != null)
-			{ // mRenderer.release();
-			}
-			this.mRenderer = null;
-		}
-
-		@Override
-		public void onOffsetsChanged(float xOffset, float yOffset, float xOffsetStep, float yOffsetStep, int xPixelOffset, int yPixelOffset)
-		{
-			super.onOffsetsChanged(xOffset, yOffset, xOffsetStep, yOffsetStep, xPixelOffset, yPixelOffset);
-			if(this.mOffsetsChangedListener != null)
-				this.mOffsetsChangedListener.offsetsChanged(xOffset, yOffset, xOffsetStep, yOffsetStep, xPixelOffset, yPixelOffset);
-		}
-	}
+//	protected class MyBaseWallpaperGLEngine extends GLEngine
+//	{
+//		private Renderer mRenderer;
+//		private IOffsetsChanged mOffsetsChangedListener = null;
+//
+//		public MyBaseWallpaperGLEngine(IOffsetsChanged pOffsetsChangedListener)
+//		{
+//			this.setEGLConfigChooser(false);
+//			this.mRenderer = new RenderSurfaceView.Renderer(LiveWallpaper.this.mEngine);
+//			this.setRenderer(this.mRenderer);
+//			this.setRenderMode(RENDERMODE_CONTINUOUSLY);
+//			this.mOffsetsChangedListener = pOffsetsChangedListener;
+//		}
+//
+//		@Override
+//		public Bundle onCommand(final String pAction, final int pX, final int pY, final int pZ, final Bundle pExtras, final boolean pResultRequested)
+//		{
+//			if(pAction.equals(WallpaperManager.COMMAND_TAP))
+//				LiveWallpaper.this.onTap(pX, pY);
+//			else
+//				if(pAction.equals(WallpaperManager.COMMAND_DROP))
+//					LiveWallpaper.this.onDrop(pX, pY);
+//			return super.onCommand(pAction, pX, pY, pZ, pExtras, pResultRequested);
+//		}
+//
+//		@Override
+//		public void onResume()
+//		{
+//			super.onResume();
+//			LiveWallpaper.this.getEngine().onResume();
+//			LiveWallpaper.this.onResume();
+//		}
+//
+//		@Override
+//		public void onPause()
+//		{
+//			super.onPause();
+//			LiveWallpaper.this.getEngine().onPause();
+//			LiveWallpaper.this.onPause();
+//		}
+//
+//		@Override
+//		public void onDestroy()
+//		{
+//			super.onDestroy();
+//			if(this.mRenderer != null)
+//			{ // mRenderer.release();
+//			}
+//			this.mRenderer = null;
+//		}
+//
+//		@Override
+//		public void onOffsetsChanged(float xOffset, float yOffset, float xOffsetStep, float yOffsetStep, int xPixelOffset, int yPixelOffset)
+//		{
+//			super.onOffsetsChanged(xOffset, yOffset, xOffsetStep, yOffsetStep, xPixelOffset, yPixelOffset);
+//			if(this.mOffsetsChangedListener != null)
+//				this.mOffsetsChangedListener.offsetsChanged(xOffset, yOffset, xOffsetStep, yOffsetStep, xPixelOffset, yPixelOffset);
+//		}
+//	}
 }
