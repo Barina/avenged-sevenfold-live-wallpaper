@@ -24,9 +24,9 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 {
 	public static final String SHARED_PREFS_NAME = "livewallpapertemplatesettings";
 	private static Camera mCamera = null;
-	private static Texture texture, titleTexture;
-	private static Sprite skull, jaw, rightWing, leftWing, titleSprite;
-	private static TextureRegion skullRegion, leftWingRegion, rightWingRegion, jawRegion, titleRegion;
+	private static Texture texture, titleTexture, bgTexture;
+	private static Sprite skull, jaw, rightWing, leftWing, titleSprite, bgSprite;
+	private static TextureRegion skullRegion, leftWingRegion, rightWingRegion, jawRegion, titleRegion, bgRegion;
 	private static Context context;
 	private static Scene scene;
 	private static org.anddev.andengine.engine.Engine engine;
@@ -53,14 +53,19 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 		Settings.loadContext(getBaseContext());
 		// Set the Base Texture Path
 		TextureRegionFactory.setAssetBasePath("gfx/");
-		initTextureRegions(Settings.getSettingAsBoolean(IS_BLACK_SETTING));
+		bgTexture = new Texture(1024, 1024, TextureOptions.BILINEAR);
+		bgRegion = TextureRegionFactory.createFromAsset(bgTexture, this, "middle_bg.png", 0, 0);
+		engine.getTextureManager().loadTexture(bgTexture);
+		bgSprite = new Sprite(-(bgRegion.getWidth() * 0.5f), (CAMERA_HEIGHT * 0.5f - bgRegion.getHeight() * 0.5f)+250, bgRegion);
+		initTextureRegions(Settings.getSettingAsBoolean(IS_BLACK_SETTING)); 
 	}
 
 	@Override
 	public synchronized Scene onLoadScene()
 	{
-		scene = new Scene(1);
+		scene = new Scene(2);
 		setSceneBGColor(Settings.getSettingAsBoolean(IS_BLACK_SETTING));
+		scene.getLayer(0).addEntity(bgSprite);
 		addSpritesToScene();
 		return scene;
 	}
