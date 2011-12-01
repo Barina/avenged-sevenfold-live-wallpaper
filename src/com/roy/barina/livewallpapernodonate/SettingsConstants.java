@@ -9,6 +9,6 @@ public interface SettingsConstants
 	TITLE_TOP_DISTANCE_SETTING = "titleDistance",
 	LOGO_CENTER_DISTANCE_SETTING = "logoCenterDistance",
 	TITLE_CENTER_DISTANCE_SETTING = "titleCenterDistance";
-	public static final int CAMERA_WIDTH = 540;
-	public static final int CAMERA_HEIGHT = 960;
+	public static final int CAMERA_WIDTH = 540, CAMERA_HEIGHT = 960, MAX_TITLE_LENGTH = 25;
+	public static final String TITLE_STRING_SETTING = "titleString";
 }

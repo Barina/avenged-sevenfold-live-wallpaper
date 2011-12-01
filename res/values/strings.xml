@@ -2,9 +2,6 @@
 <resources>
 	<string name="app_name">A7X Live Wallpaper</string>
 	<string name="wallpaper_description">Avenged Sevenfold Live Wallpaper</string>
-	<!-- Settings -->
 	<string name="wallpaper_settings">Settings</string>
-	<!-- Touch Input Setting -->
-	<!-- Particle Colour Settings -->
-	<!-- Background Colour Settings -->
+	<string name="default_title_string">Avenged A7X Sevenfold</string>
 </resources>

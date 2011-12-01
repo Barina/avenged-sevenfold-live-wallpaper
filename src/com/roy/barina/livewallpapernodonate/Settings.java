@@ -13,11 +13,13 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.FrameLayout.LayoutParams;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -32,12 +34,14 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 {
 	private static boolean isBlack, paused, drawTitle;
 	private static int logoDistance, titleDistance, logoCenterDistance, titleCenterDistance;
+	private static String titleString;
 
 	private LinearLayout linearLayout;
 	private CheckBox isBlackCheckBox, pausedCheckBox, drawTitleCheckBox;
 	private SeekBar titleSeekBar, logoSeekBar, titleCenterSeekBar, logoCenterSeekBar;
 	private TextView titleDistanceTextView, logoDistanceTextView, titleCenterDistanceTextView, logoCenterDistanceTextView;
 	private Button resetButton;
+	private EditText titleEditText;
 	private AdView adView;// non donation
 
 	@Override
@@ -62,6 +66,7 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 	protected void onDestroy()
 	{
 		saveSettings();
+		LiveWallpaper.changeColor(isBlack);
 		getPreferenceManager().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
 		getAdView().destroy();// non donation
 		super.onDestroy();
@@ -79,7 +84,7 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 			return paused;
 		if(settingName.equals(DRAW_TITLE_SETTING))
 			return drawTitle;
-		throw new InvalidParameterException("Bad request.");
+		throw new InvalidParameterException("Bad boolean setting request.");
 	}
 
 	public static int getSettingAsInt(String settingName)
@@ -99,6 +104,13 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 		return -1;
 	}
 
+	public static String getSettingAsString(String settingName)
+	{
+		if(settingName.equals(TITLE_STRING_SETTING))
+			return titleString;	
+		throw new InvalidParameterException("Bad string setting request.");
+	}
+	
 	public LinearLayout getLinearLayout()
 	{
 		if(linearLayout == null)
@@ -112,6 +124,7 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 			textView.setTextSize(20);
 			textView.setBackgroundColor(Color.argb(190, 0, 0, 0));
 			linearLayout.addView(textView);
+			linearLayout.addView(getTitleEditText());
 			linearLayout.addView(getIsBlackCheckBox());
 			linearLayout.addView(getPausedCheckBox());
 			linearLayout.addView(getDrawTitleCheckBox());
@@ -398,22 +411,48 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 					AlertDialog.Builder builder = new AlertDialog.Builder(Settings.this);
 					builder.setMessage("Are you sure you want to reset all your settings to default?").setCancelable(false).setPositiveButton("Yes", new DialogInterface.OnClickListener()
 					{
-						public void onClick(DialogInterface dialog, int id)
-						{
-							resetSettings();
-						}
-					}).setNegativeButton("No", new DialogInterface.OnClickListener()
-					{
-						public void onClick(DialogInterface dialog, int id)
-						{
-							dialog.cancel();
-						}
-					});
+								public void onClick(DialogInterface dialog, int id)
+								{
+									resetSettings();
+								}
+							}).setNegativeButton("No", new DialogInterface.OnClickListener()
+							{
+								public void onClick(DialogInterface dialog, int id)
+								{
+									dialog.cancel();
+								}
+							});
 					builder.create().show();
 				}
 			});
 		}
 		return resetButton;
+	}
+
+	public EditText getTitleEditText()
+	{
+		if(titleEditText == null)
+		{
+			titleEditText = new EditText(this);
+			titleEditText.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+			titleEditText.setText(titleString);
+			titleEditText.setSingleLine();
+			titleEditText.setOnKeyListener(new View.OnKeyListener()
+			{
+				@Override
+				public boolean onKey(View v, int keyCode, KeyEvent event)
+				{
+					String tmp = getTitleEditText().getText().toString();
+					if(tmp.length() >= MAX_TITLE_LENGTH)
+						titleString = tmp.substring(0, MAX_TITLE_LENGTH);
+					else
+						titleString = tmp;
+					LiveWallpaper.updateTitleText();
+					return false;
+				}
+			});
+		}
+		return titleEditText;
 	}
 
 	private static Context activityContext;
@@ -435,6 +474,8 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 			titleDistance = 100;
 		logoCenterDistance = getIntSetting(LOGO_CENTER_DISTANCE_SETTING);
 		titleCenterDistance = getIntSetting(TITLE_CENTER_DISTANCE_SETTING);
+		if((titleString = getStringSetting(TITLE_STRING_SETTING)) == null || titleString.equals(""))
+			titleString = activityContext.getResources().getString(R.string.default_title_string);
 	}
 
 	private static void saveSettings()
@@ -446,6 +487,7 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 		setSetting(TITLE_TOP_DISTANCE_SETTING, titleDistance);
 		setSetting(LOGO_CENTER_DISTANCE_SETTING, logoCenterDistance);
 		setSetting(TITLE_CENTER_DISTANCE_SETTING, titleCenterDistance);
+		setSetting(TITLE_STRING_SETTING, titleString);
 	}
 
 	private void resetSettings()
@@ -492,6 +534,18 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 		if(result == null)
 			result = -1;
 		return result;
+	}
+
+	private static String getStringSetting(String settingName)
+	{
+		try
+		{
+			return (String)getSetting(settingName);
+		}
+		catch(Exception e)
+		{
+			return null;
+		}
 	}
 
 	private static Object getSetting(String settingName)
