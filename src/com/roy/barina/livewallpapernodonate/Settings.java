@@ -81,13 +81,15 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 	{}
 
 	public static boolean getSettingAsBoolean(String settingName)
-	{
+	{// TODO: add or remove settings here
 		if(settingName.equals(IS_BLACK_SETTING))
 			return isBlack;
 		if(settingName.equals(IS_PAUSED_SETTING))
 			return paused;
 		if(settingName.equals(DRAW_TITLE_SETTING))
 			return drawTitle;
+		if(settingName.equals(DRAW_BG_SETTING))
+			return drawBg;
 		throw new InvalidParameterException("Bad boolean setting request.");
 	}
 

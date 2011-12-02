@@ -69,6 +69,7 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 		bgSprite = new Sprite(-(bgRegion.getWidth() * 0.5f), (CAMERA_HEIGHT * 0.5f - bgRegion.getHeight() * 0.5f) + 250, bgRegion);
 		titleText = new ChangeableText(0, 0, titleFont, "", MAX_TITLE_LENGTH);
 		initTextureRegions(Settings.getSettingAsBoolean(IS_BLACK_SETTING));
+		drawBg(Settings.getSettingAsBoolean(DRAW_BG_SETTING));
 	}
 
 	@Override
