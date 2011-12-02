@@ -29,19 +29,23 @@ import android.widget.TextView;
 import com.google.ads.AdRequest;
 import com.google.ads.AdSize;
 import com.google.ads.AdView;
+import com.roy.barina.livewallpapernodonate.NumericPicker.IOnValueChangedListener;
 
 public class Settings extends PreferenceActivity implements SharedPreferences.OnSharedPreferenceChangeListener, SettingsConstants
 {
-	private static boolean isBlack, paused, drawTitle;
+	private static boolean isBlack, paused, drawTitle, drawBg;
 	private static int logoDistance, titleDistance, logoCenterDistance, titleCenterDistance;
+	private static float titleTextSize;
 	private static String titleString;
 
 	private LinearLayout linearLayout;
-	private CheckBox isBlackCheckBox, pausedCheckBox, drawTitleCheckBox;
+	private CheckBox isBlackCheckBox, pausedCheckBox, drawTitleCheckBox, drawBgCheckBox;
 	private SeekBar titleSeekBar, logoSeekBar, titleCenterSeekBar, logoCenterSeekBar;
 	private TextView titleDistanceTextView, logoDistanceTextView, titleCenterDistanceTextView, logoCenterDistanceTextView;
 	private Button resetButton;
 	private EditText titleEditText;
+	private NumericPicker titleSizePicker;
+	
 	private AdView adView;// non donation
 
 	@Override
@@ -104,6 +108,13 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 		return -1;
 	}
 
+	public static float getSettingAsFloat(String settingName)
+	{
+		if(settingName.equals(TITLE_TEXT_SIZE_SETTING))
+			return titleTextSize;
+		return -1;
+	}
+
 	public static String getSettingAsString(String settingName)
 	{
 		if(settingName.equals(TITLE_STRING_SETTING))
@@ -118,16 +129,23 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 			linearLayout = new LinearLayout(this);
 			linearLayout.setOrientation(LinearLayout.VERTICAL);
 			linearLayout.addView(getAdView()); // non donation
-			final TextView textView = new TextView(this);
+			TextView textView = new TextView(this);
 			textView.setText("Please donate.. :)");// non donation
 			textView.setTextColor(Color.RED);// non donation
 			textView.setTextSize(20);
 			textView.setBackgroundColor(Color.argb(190, 0, 0, 0));
 			linearLayout.addView(textView);
-			linearLayout.addView(getTitleEditText());
+			linearLayout.addView(getTitleEditText());			
+			textView = new TextView(this);
+			textView.setText("Title text size:");
+			textView.setTextColor(Color.WHITE);
+			textView.setBackgroundColor(Color.argb(190, 0, 0, 0));
+			linearLayout.addView(textView);			
+			linearLayout.addView(getTitleSizePicker());			
 			linearLayout.addView(getIsBlackCheckBox());
 			linearLayout.addView(getPausedCheckBox());
 			linearLayout.addView(getDrawTitleCheckBox());
+			linearLayout.addView(getDrawBgCheckBox());
 			linearLayout.addView(getTitleDistanceTextView());
 			linearLayout.addView(getTitleSeekBar());
 			linearLayout.addView(getLogoDistanceTextView());
@@ -216,6 +234,29 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 			});
 		}
 		return drawTitleCheckBox;
+	}
+
+	public CheckBox getDrawBgCheckBox()
+	{
+		if(drawBgCheckBox == null)
+		{
+			drawBgCheckBox = new CheckBox(this);
+			drawBgCheckBox.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+			drawBgCheckBox.setText("Draw custom background.");
+			drawBgCheckBox.setTextColor(Color.BLACK);
+			drawBgCheckBox.setTypeface(Typeface.DEFAULT_BOLD);
+			drawBgCheckBox.setChecked(getBooleanSetting(DRAW_BG_SETTING));
+			drawBgCheckBox.setOnCheckedChangeListener(new CheckBox.OnCheckedChangeListener()
+			{
+				@Override
+				public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
+				{
+					LiveWallpaper.drawBg(isChecked);
+					drawBg = isChecked;
+				}
+			});
+		}
+		return drawBgCheckBox;
 	}
 
 	public TextView getTitleDistanceTextView()
@@ -455,6 +496,25 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 		return titleEditText;
 	}
 
+	public NumericPicker getTitleSizePicker()
+	{
+		if(titleSizePicker==null)	
+		{
+			titleSizePicker= new NumericPicker(this, 0, 5,0.10f, titleTextSize);
+			titleSizePicker.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+			titleSizePicker.setOnValueChangedListener(new IOnValueChangedListener()
+			{
+				@Override
+				public void ValueChangedListener(float size)
+				{
+					titleTextSize = size;
+					LiveWallpaper.updateTitleSize();
+				}
+			});
+		}
+		return titleSizePicker;
+	}
+	
 	private static Context activityContext;
 
 	public static void loadContext(Context context)
@@ -464,10 +524,11 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 	}
 
 	private static void loadSettings()
-	{
+	{//TODO: add or remove settings
 		isBlack = getBooleanSetting(IS_BLACK_SETTING);
 		paused = getBooleanSetting(IS_PAUSED_SETTING);
 		drawTitle = getBooleanSetting(DRAW_TITLE_SETTING);
+		drawBg = getBooleanSetting(DRAW_BG_SETTING);
 		if((logoDistance = getIntSetting(LOGO_TOP_DISTANCE_SETTING)) <= -1)
 			logoDistance = 400;
 		if((titleDistance = getIntSetting(TITLE_TOP_DISTANCE_SETTING)) <= -1)
@@ -476,18 +537,22 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 		titleCenterDistance = getIntSetting(TITLE_CENTER_DISTANCE_SETTING);
 		if((titleString = getStringSetting(TITLE_STRING_SETTING)) == null || titleString.equals(""))
 			titleString = activityContext.getResources().getString(R.string.default_title_string);
+		if((titleTextSize = getFloatSetting(TITLE_TEXT_SIZE_SETTING)) == -1f)
+			titleTextSize = 1;
 	}
 
 	private static void saveSettings()
-	{
+	{//TODO: add or remove settings
 		setSetting(IS_BLACK_SETTING, isBlack);
 		setSetting(IS_PAUSED_SETTING, paused);
 		setSetting(DRAW_TITLE_SETTING, drawTitle);
+		setSetting(DRAW_BG_SETTING, drawBg);
 		setSetting(LOGO_TOP_DISTANCE_SETTING, logoDistance);
 		setSetting(TITLE_TOP_DISTANCE_SETTING, titleDistance);
 		setSetting(LOGO_CENTER_DISTANCE_SETTING, logoCenterDistance);
 		setSetting(TITLE_CENTER_DISTANCE_SETTING, titleCenterDistance);
 		setSetting(TITLE_STRING_SETTING, titleString);
+		setSetting(TITLE_TEXT_SIZE_SETTING, titleTextSize);
 	}
 
 	private void resetSettings()
@@ -495,10 +560,12 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 		isBlack = false;
 		paused = false;
 		drawTitle = true;
+		drawBg = true;
 		logoDistance = 400;
 		titleDistance = 100;
 		logoCenterDistance = 0;
 		titleCenterDistance = 0;
+		titleTextSize = 1;
 		saveSettings();
 		finish();
 		LiveWallpaper.changeColor(isBlack);
@@ -533,6 +600,22 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
 		}
 		if(result == null)
 			result = -1;
+		return result;
+	}
+
+	private static float getFloatSetting(String settingName)
+	{
+		Float result = -1f;
+		try
+		{
+			result = (Float)getSetting(settingName);
+		}
+		catch(ClassCastException e)
+		{
+			return -1;
+		}
+		if(result == null)
+			result = -1f;
 		return result;
 	}
 

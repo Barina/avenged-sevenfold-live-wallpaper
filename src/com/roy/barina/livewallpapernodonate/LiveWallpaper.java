@@ -30,8 +30,8 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 	public static final int LAYER_BG = 0, LAYER_DEATHBAT = 1, LAYER_TITLE = 2;
 	private static Camera mCamera;
 	private static Texture texture, titleTexture, bgTexture;
-	private static TextureRegion skullRegion, leftWingRegion, rightWingRegion, jawRegion, /*titleRegion,*/ bgRegion;
-	private static Sprite skull, jaw, rightWing, leftWing,/* titleSprite,*/ bgSprite;
+	private static TextureRegion skullRegion, leftWingRegion, rightWingRegion, jawRegion, bgRegion;
+	private static Sprite skull, jaw, rightWing, leftWing, bgSprite;
 	private static ChangeableText titleText;
 	private static Font titleFont;
 	private static Context context;
@@ -119,45 +119,21 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 		if(texture != null)
 			engine.getTextureManager().unloadTexture(texture);
 		texture = new Texture(256, 512, TextureOptions.REPEATING);
-//		titleTexture = new Texture(256, 32, TextureOptions.REPEATING);
 		String color = isBlack ? "black_" : "white_";
 		skullRegion = TextureRegionFactory.createFromAsset(texture, context, color + "skull.png", 1, 1);
 		leftWingRegion = TextureRegionFactory.createFromAsset(texture, context, color + "left_wing.png", 1, 157);
 		rightWingRegion = TextureRegionFactory.createFromAsset(texture, context, color + "right_wing.png", 1, 260);
 		jawRegion = TextureRegionFactory.createFromAsset(texture, context, color + "jaw.png", 1, 361);
-//		titleRegion = TextureRegionFactory.createFromAsset(titleTexture, context, color + "title.png", 0, 0);
 		engine.getTextureManager().loadTexture(texture);
-		final int logoTopDistance = Settings.getSettingAsInt(LOGO_TOP_DISTANCE_SETTING),/* titleTopDistance = Settings.getSettingAsInt(TITLE_TOP_DISTANCE_SETTING),*/ 
-		logoCenterDistance = Settings.getSettingAsInt(LOGO_CENTER_DISTANCE_SETTING);//, titleCenterDistance = Settings.getSettingAsInt(TITLE_CENTER_DISTANCE_SETTING);
+		final int logoTopDistance = Settings.getSettingAsInt(LOGO_TOP_DISTANCE_SETTING), logoCenterDistance = Settings.getSettingAsInt(LOGO_CENTER_DISTANCE_SETTING);
 		skull = new Sprite(-(skullRegion.getWidth() * 0.5f) + logoCenterDistance, logoTopDistance, skullRegion);
 		rightWing = new Sprite(-(rightWingRegion.getWidth() * 0.5f) + rightWingRegion.getWidth() * 0.8f + logoCenterDistance, logoTopDistance + 20, rightWingRegion);
 		rightWing.setRotationCenterX(0);
 		leftWing = new Sprite(-(leftWingRegion.getWidth() * 0.5f) - leftWingRegion.getWidth() * 0.8f + logoCenterDistance, rightWing.getBaseY(), leftWingRegion);
 		leftWing.setRotationCenterX(leftWing.getWidth());
 		jaw = new Sprite(-(jawRegion.getWidth() * 0.5f) + logoCenterDistance, logoTopDistance + 120, jawRegion);
-
 		updateTitleText();
-		titleText.setVisible(Settings.getSettingAsBoolean(DRAW_TITLE_SETTING));
-		
-//		titleSprite = new Sprite(-(titleRegion.getWidth() * 0.5f) + titleCenterDistance, titleTopDistance, titleRegion);
-//		titleSprite.addShapeModifier(new SequenceModifier(new IShapeModifier.IShapeModifierListener()
-//		{
-//			@Override
-//			public void onModifierFinished(IShapeModifier modifier, IShape shape)
-//			{
-//				modifier.reset();
-//			}
-//		}, new RotationModifier(2.5f, -1.5f, 1.5f), new RotationModifier(2.8f, 1.5f, -1.5f)));
-//		titleSprite.addShapeModifier(new SequenceModifier(new IShapeModifier.IShapeModifierListener()
-//		{
-//			@Override
-//			public void onModifierFinished(IShapeModifier modifier, IShape shape)
-//			{
-//				modifier.reset();
-//			}
-//		}, new MoveModifier(2, titleSprite.getX(), titleSprite.getX(), titleSprite.getY(), titleSprite.getY() + 20), new MoveModifier(2, titleSprite.getX(), titleSprite.getX(),
-//				titleSprite.getY() + 20, titleSprite.getY())));
-//		titleSprite.setVisible(Settings.getSettingAsBoolean(DRAW_TITLE_SETTING));
+		titleText.setVisible(Settings.getSettingAsBoolean(DRAW_TITLE_SETTING));		
 		final SequenceModifier skullSequenceModifier = new SequenceModifier(new MoveModifier(2, skull.getX(), skull.getX(), skull.getY(), skull.getY() + 50), new MoveModifier(
 				0.5f, skull.getX(), skull.getX(), skull.getY() + 50, skull.getY()));
 		skullSequenceModifier.setShapeModifierListener(new IShapeModifier.IShapeModifierListener()
@@ -252,18 +228,23 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 			}
 		}, new MoveModifier(2, titleText.getX(), titleText.getX(), titleText.getY(), titleText.getY() + 20), new MoveModifier(2, titleText.getX(), titleText.getX(), titleText
 				.getY() + 20, titleText.getY())));
+		updateTitleSize();
+	}
+
+	public static void updateTitleSize()
+	{
+		titleText.setScale(Settings.getSettingAsFloat(TITLE_TEXT_SIZE_SETTING));
 	}
 
 	private synchronized static void updateDistances()
 	{
-		if(skull == null || rightWing == null || leftWing == null || jaw == null)// || titleSprite == null)
+		if(skull == null || rightWing == null || leftWing == null || jaw == null)
 			return;
 		final int logoDistance = Settings.getSettingAsInt(LOGO_TOP_DISTANCE_SETTING), titleDistance = Settings.getSettingAsInt(TITLE_TOP_DISTANCE_SETTING);
 		skull.setPosition(skull.getX(), logoDistance);
 		rightWing.setPosition(rightWing.getX(), logoDistance + 20);
 		leftWing.setPosition(leftWing.getX(), logoDistance + 20);
 		jaw.setPosition(jaw.getX(), logoDistance + 120);
-//		titleSprite.setPosition(titleSprite.getX(), titleDistance);
 		titleText.setPosition(titleText.getX(), titleDistance);
 	}
 
@@ -281,7 +262,6 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 		scene.getLayer(LAYER_DEATHBAT).addEntity(leftWing);
 		scene.getLayer(LAYER_DEATHBAT).addEntity(jaw);
 		scene.getLayer(LAYER_DEATHBAT).addEntity(skull);
-//		scene.getLayer(LAYER_TITLE).addEntity(titleSprite);
 	}
 
 	private synchronized static void setSceneBGColor(boolean isBlack)
@@ -295,10 +275,14 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 
 	public synchronized static void drawTitle(boolean draw)
 	{
-//		if(titleSprite != null)
-//			titleSprite.setVisible(draw);
 		if(titleText != null)
 			titleText.setVisible(draw);
+	}
+
+	public synchronized static void drawBg(boolean draw)
+	{
+		if(bgSprite != null)
+			bgSprite.setVisible(draw);
 	}
 
 	public synchronized static void changeColor(boolean toBlack)
@@ -309,7 +293,6 @@ public class LiveWallpaper extends BaseLiveWallpaperService implements SharedPre
 		scene.getLayer(LAYER_DEATHBAT).removeEntity(leftWing);
 		scene.getLayer(LAYER_DEATHBAT).removeEntity(jaw);
 		scene.getLayer(LAYER_DEATHBAT).removeEntity(skull);
-//		scene.getLayer(LAYER_TITLE).removeEntity(titleSprite);
 		initTextureRegions(toBlack);
 		updateDistances();
 		setSceneBGColor(toBlack);
